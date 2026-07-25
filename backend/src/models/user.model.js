@@ -20,6 +20,19 @@ const userSchema = new mongoose.Schema(
       required: [true, "Password is required"],
       minlength: 6,
     },
+    githubId: {
+      type: String,
+      default: null,
+    },
+      githubUsername: {
+      type: String,
+      default: null,
+    },
+      githubAccessToken: {
+      type: String,
+      default: null,
+      select: false, // never return this in normal queries, same as password
+    }
   },
   { timestamps: true }
 );

@@ -14,3 +14,15 @@ export const findUserById = async (id) => {
   return await User.findById(id);
 };
 
+export const updateGithubInfo = async (userId, { githubId, githubUsername, githubAccessToken }) => {
+  return await User.findByIdAndUpdate(
+    userId,
+    { githubId, githubUsername, githubAccessToken },
+    { returnDocument: "after" }
+  );
+};
+
+export const findUserByIdWithGithubToken = async (id) => {
+  return await User.findById(id).select("+githubAccessToken");
+};
+

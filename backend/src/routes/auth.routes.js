@@ -1,5 +1,7 @@
 import express from "express";
 import { getMe, login, logout, register } from "../controllers/auth.controller.js";
+import { protect } from "../middlewares/auth.middleware.js";
+
 
 const router = express.Router();
 
@@ -17,6 +19,6 @@ router.post("/logout", logout);
 
 // @routes http://localhost:3000/api/auth/me
 // @desc get current user
-router.get("/me", getMe);
+router.get("/me", protect,getMe);
 
 export default router;
