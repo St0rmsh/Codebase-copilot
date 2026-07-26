@@ -47,10 +47,11 @@ export const ingestRepo = async (userId, repoData) => {
     const updatedRepo = await updateRepoStatus(repo._id, "indexed", {
       files,
       fileCount: files.length,
+      localPath,
     });
 
     // Clean up cloned folder — we only needed it for the file walk
-    await fs.rm(localPath, { recursive: true, force: true });
+    // await fs.rm(localPath, { recursive: true, force: true });
 
     return updatedRepo;
   } catch (error) {

@@ -18,6 +18,7 @@ const repoSchema = new mongoose.Schema(
     private: { type: Boolean, default: false },
     defaultBranch: { type: String, default: "main" },
     cloneUrl: { type: String, required: true },
+    localPath: { type: String, default: null },
     status: {
       type: String,
       enum: ["pending", "cloning", "indexed", "failed"],
