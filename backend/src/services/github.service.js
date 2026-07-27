@@ -1,20 +1,29 @@
 import axios from "axios";
+import jwt from "jsonwebtoken";
 import config from "../config/config.js";
-import { updateGithubInfo, findUserByIdWithGithubToken } from "../dao/user.dao.js";
+import {
+  updateGithubInfo,
+  findUserByIdWithGithubToken,
+  findUserByGithubId,
+  createGithubUser,
+  findUserByEmail,
+  markUserVerified,
+} from "../dao/user.dao.js";
 
-
+const generateToken = (userId) => {
+  return jwt.sign({ id: userId }, config.JWT_SECRET, { expiresIn: "7d" });
+};
 
 export const getGithubAuthUrl = () => {
   const params = new URLSearchParams({
     client_id: config.GITHUB_CLIENT_ID,
     redirect_uri: config.GITHUB_CALLBACK_URL,
-    scope: "repo read:user", // 'repo' scope needed for private repo access
+    scope: "repo read:user",
   });
   return `https://github.com/login/oauth/authorize?${params.toString()}`;
 };
 
-export const handleGithubCallback = async (code, userId) => {
-  // Exchange code for access token
+const exchangeGithubCode = async (code) => {
   const tokenRes = await axios.post(
     "https://github.com/login/oauth/access_token",
     {
@@ -32,24 +41,70 @@ export const handleGithubCallback = async (code, userId) => {
     throw error;
   }
 
-  // Get GitHub user info
   const githubUserRes = await axios.get("https://api.github.com/user", {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
 
+  return { accessToken, githubProfile: githubUserRes.data };
+};
+
+export const connectGithubAccount = async (code, userId) => {
+  const { accessToken, githubProfile } = await exchangeGithubCode(code);
+
   const updatedUser = await updateGithubInfo(userId, {
-    githubId: githubUserRes.data.id.toString(),
-    githubUsername: githubUserRes.data.login,
+    githubId: githubProfile.id.toString(),
+    githubUsername: githubProfile.login,
     githubAccessToken: accessToken,
   });
 
-  return {
-    githubUsername: updatedUser.githubUsername,
-  };
+  return { githubUsername: updatedUser.githubUsername };
 };
 
+export const githubSignIn = async (code) => {
+  const { accessToken, githubProfile } = await exchangeGithubCode(code);
 
+  const emailRes = await axios.get("https://api.github.com/user/emails", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  const primaryEmail = emailRes.data.find((e) => e.primary)?.email || emailRes.data[0]?.email;
 
+  const githubId = githubProfile.id.toString();
+  const githubUsername = githubProfile.login;
+
+  let user = await findUserByGithubId(githubId);
+
+  if (!user) {
+    const existingByEmail = primaryEmail ? await findUserByEmail(primaryEmail) : null;
+
+    if (existingByEmail) {
+      user = await updateGithubInfo(existingByEmail._id, {
+        githubId,
+        githubUsername,
+        githubAccessToken: accessToken,
+      });
+      if (!user.isVerified) {
+        user = await markUserVerified(user._id);
+      }
+    } else {
+      user = await createGithubUser({
+        name: githubProfile.name || githubUsername,
+        email: primaryEmail,
+        githubId,
+        githubUsername,
+        githubAccessToken: accessToken,
+      });
+    }
+  } else {
+    user = await updateGithubInfo(user._id, {
+      githubId,
+      githubUsername,
+      githubAccessToken: accessToken,
+    });
+  }
+
+  const token = generateToken(user._id);
+  return { token, user };
+};
 
 export const listUserRepos = async (userId) => {
   const user = await findUserByIdWithGithubToken(userId);

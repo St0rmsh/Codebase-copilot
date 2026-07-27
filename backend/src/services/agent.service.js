@@ -1,16 +1,34 @@
 import { StateGraph, END, START, Annotation } from "@langchain/langgraph";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatMistralAI } from "@langchain/mistralai";
 import { HumanMessage, AIMessage, SystemMessage } from "@langchain/core/messages";
 import { searchRepoChunks } from "./search.service.js";
 import config from "../config/config.js";
 
-const llm = new ChatGoogleGenerativeAI({
+const geminiLLM = new ChatGoogleGenerativeAI({
   apiKey: config.GOOGLE_API_KEY,
   model: "gemini-2.0-flash",
   temperature: 0.2,
 });
 
-// Graph state: the conversation history plus retrieved chunks for this turn
+const mistralLLM = new ChatMistralAI({
+  apiKey: config.MISTRAL_API_KEY,
+  model: "mistral-small-latest",
+  temperature: 0.2,
+});
+
+// Tries Gemini first; falls back to Mistral on any error (rate limit, quota, network, etc.)
+const invokeWithFallback = async (messages) => {
+  try {
+    const response = await geminiLLM.invoke(messages);
+    return { response, provider: "gemini" };
+  } catch (err) {
+    console.error("Gemini failed, falling back to Mistral:", err.message);
+    const response = await mistralLLM.invoke(messages);
+    return { response, provider: "mistral" };
+  }
+};
+
 const AgentState = Annotation.Root({
   messages: Annotation({
     reducer: (prev, next) => prev.concat(next),
@@ -23,7 +41,6 @@ const AgentState = Annotation.Root({
   }),
 });
 
-// Node 1: retrieve relevant code chunks for the latest user question
 const retrieveNode = async (state) => {
   const lastMessage = state.messages[state.messages.length - 1];
   const query = lastMessage.content;
@@ -33,7 +50,6 @@ const retrieveNode = async (state) => {
   return { retrievedChunks: chunks };
 };
 
-// Node 2: generate an answer grounded in the retrieved chunks
 const generateNode = async (state) => {
   const contextBlock = state.retrievedChunks
     .map(
@@ -47,10 +63,11 @@ const generateNode = async (state) => {
 CODE CONTEXT:
 ${contextBlock}`;
 
-  const response = await llm.invoke([
-    new SystemMessage(systemPrompt),
-    ...state.messages,
-  ]);
+  const messages = [new SystemMessage(systemPrompt), ...state.messages];
+
+  const { response, provider } = await invokeWithFallback(messages);
+
+  console.log(`Answer generated using: ${provider}`);
 
   return { messages: [new AIMessage(response.content)] };
 };
@@ -84,6 +101,7 @@ export const runAgent = async (repoId, conversationHistory, newQuestion) => {
       symbolName: c.symbolName,
       startLine: c.startLine,
       endLine: c.endLine,
+      code: c.code,
     })),
   };
 };

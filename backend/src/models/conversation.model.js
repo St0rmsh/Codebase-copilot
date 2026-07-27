@@ -10,6 +10,7 @@ const messageSchema = new mongoose.Schema(
         symbolName: String,
         startLine: Number,
         endLine: Number,
+        code: String,
       },
     ],
   },
