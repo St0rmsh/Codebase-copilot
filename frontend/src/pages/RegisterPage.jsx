@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
 import { registerUser } from "../features/Auth/state/authSlice";
+import { showToast } from "../App/toastSlice";
 
 const RegisterPage = () => {
   const [name, setName] = useState("");
@@ -11,10 +12,17 @@ const RegisterPage = () => {
   const navigate = useNavigate();
   const { loading, error } = useSelector((state) => state.auth);
 
+  useEffect(() => {
+    if (error) dispatch(showToast(error, "error"));
+  }, [error, dispatch]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const result = await dispatch(registerUser({ name, email, password }));
-    if (result.requiresVerification) navigate("/verify-otp");
+    if (result.requiresVerification) {
+      dispatch(showToast("Verification code sent to your email.", "success"));
+      navigate("/verify-otp");
+    }
   };
 
   const handleGithubSignIn = () => {
@@ -76,8 +84,6 @@ const RegisterPage = () => {
               minLength={6}
             />
           </div>
-
-          {error && <p className="font-mono text-xs text-accent">{error}</p>}
 
           <button
             type="submit"

@@ -1,9 +1,12 @@
+import { useDispatch } from "react-redux";
 import { useGithubRepos } from "../hooks/useGithubRepos";
 import { useRepos } from "../../repo/hooks/useRepos";
+import { showToast } from "../../../App/toastSlice";
 
 const GithubRepoPicker = ({ onClose }) => {
   const { githubRepos, loading } = useGithubRepos(true);
   const { ingest, ingesting } = useRepos();
+  const dispatch = useDispatch();
 
   const handleSelect = async (repo) => {
     const result = await ingest({
@@ -14,7 +17,12 @@ const GithubRepoPicker = ({ onClose }) => {
       defaultBranch: repo.defaultBranch,
       cloneUrl: repo.cloneUrl,
     });
-    if (result.success) onClose();
+    if (result.success) {
+      dispatch(showToast(`${repo.name} indexed successfully.`, "success"));
+      onClose();
+    } else {
+      dispatch(showToast("Failed to ingest repository. Please try again.", "error"));
+    }
   };
 
   return (

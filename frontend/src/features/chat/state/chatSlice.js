@@ -1,8 +1,9 @@
-import { sendChatMessage } from "../services/chatService";
+import { sendChatMessage, streamChatMessage } from "../services/chatService";
 
 const initialState = {
-  messages: [], // { role: "user" | "assistant", content, citedChunks? }
+  messages: [],
   loading: false,
+  streaming: false,
   error: null,
 };
 
@@ -10,6 +11,12 @@ const SEND_START = "chat/SEND_START";
 const SEND_SUCCESS = "chat/SEND_SUCCESS";
 const SEND_FAIL = "chat/SEND_FAIL";
 const RESET_CHAT = "chat/RESET";
+
+const STREAM_START = "chat/STREAM_START";
+const STREAM_CITATIONS = "chat/STREAM_CITATIONS";
+const STREAM_TOKEN = "chat/STREAM_TOKEN";
+const STREAM_DONE = "chat/STREAM_DONE";
+const STREAM_ERROR = "chat/STREAM_ERROR";
 
 const chatReducer = (state = initialState, action) => {
   switch (action.type) {
@@ -31,6 +38,37 @@ const chatReducer = (state = initialState, action) => {
       };
     case SEND_FAIL:
       return { ...state, loading: false, error: action.payload };
+
+    case STREAM_START:
+      return {
+        ...state,
+        streaming: true,
+        error: null,
+        messages: [
+          ...state.messages,
+          { role: "user", content: action.payload },
+          { role: "assistant", content: "", citedChunks: [] }, // placeholder, fills in as tokens arrive
+        ],
+      };
+    case STREAM_CITATIONS: {
+      const messages = [...state.messages];
+      messages[messages.length - 1] = {
+        ...messages[messages.length - 1],
+        citedChunks: action.payload,
+      };
+      return { ...state, messages };
+    }
+    case STREAM_TOKEN: {
+      const messages = [...state.messages];
+      const last = messages[messages.length - 1];
+      messages[messages.length - 1] = { ...last, content: last.content + action.payload };
+      return { ...state, messages };
+    }
+    case STREAM_DONE:
+      return { ...state, streaming: false };
+    case STREAM_ERROR:
+      return { ...state, streaming: false, error: action.payload };
+
     case RESET_CHAT:
       return initialState;
     default:
@@ -51,6 +89,17 @@ export const askQuestion = (repoId, question) => async (dispatch) => {
     });
     return { success: false };
   }
+};
+
+export const askQuestionStreaming = (repoId, question) => async (dispatch) => {
+  dispatch({ type: STREAM_START, payload: question });
+
+  await streamChatMessage(repoId, question, {
+    onCitations: (citedChunks) => dispatch({ type: STREAM_CITATIONS, payload: citedChunks }),
+    onToken: (content) => dispatch({ type: STREAM_TOKEN, payload: content }),
+    onDone: () => dispatch({ type: STREAM_DONE }),
+    onError: (message) => dispatch({ type: STREAM_ERROR, payload: message }),
+  });
 };
 
 export const resetChat = () => ({ type: RESET_CHAT });

@@ -42,17 +42,19 @@ export const githubCallback = async (req, res) => {
       return res.redirect(`${config.FRONTEND_URL}/dashboard?github=connected`);
     } else {
       const { token: newToken } = await githubSignIn(code);
+      console.log("GitHub sign-in succeeded, setting cookie. Token exists:", !!newToken);
 
       res
         .cookie("token", newToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
-          sameSite: "strict",
+          sameSite: "lax",
           maxAge: 7 * 24 * 60 * 60 * 1000,
         })
         .redirect(`${config.FRONTEND_URL}/dashboard`);
     }
   } catch (error) {
+    console.error("GitHub callback failed:", error.message, error.stack); // <-- this will reveal the real cause
     const redirectPath = existingUserId ? "/dashboard?github=error" : "/login?error=github_signin_failed";
     res.redirect(`${config.FRONTEND_URL}${redirectPath}`);
   }

@@ -1,6 +1,6 @@
 import CitationChip from "./CitationChip";
 
-const MessageBubble = ({ message, onCitationClick }) => {
+const MessageBubble = ({ message, onCitationClick, showCursor }) => {
   const isUser = message.role === "user";
 
   return (
@@ -17,6 +17,7 @@ const MessageBubble = ({ message, onCitationClick }) => {
         }`}
       >
         {message.content}
+        {showCursor && <span className="inline-block w-2 h-4 bg-accent ml-0.5 animate-pulse align-middle" />}
       </div>
 
       {!isUser && message.citedChunks?.length > 0 && (

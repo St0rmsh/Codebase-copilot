@@ -15,3 +15,8 @@ export const findReposByUser = async (userId) => {
 export const updateRepoStatus = async (id, status, extra = {}) => {
   return await Repo.findByIdAndUpdate(id, { status, ...extra }, { returnDocument: "after" });
 };
+
+
+export const saveDependencyGraph = async (repoId, dependencyGraph) => {
+  return await Repo.findByIdAndUpdate(repoId, { dependencyGraph }, { returnDocument: "after" });
+};

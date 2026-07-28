@@ -1,14 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { verifyOtp, resendOtp } from "../features/Auth/state/authSlice";
+import { showToast } from "../App/toastSlice";
 
 const OtpVerifyPage = () => {
   const [otp, setOtp] = useState("");
-  const [resendMsg, setResendMsg] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, error, pendingVerificationUserId } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (error) dispatch(showToast(error, "error"));
+  }, [error, dispatch]);
 
   if (!pendingVerificationUserId) {
     navigate("/login");
@@ -18,13 +22,20 @@ const OtpVerifyPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const result = await dispatch(verifyOtp({ userId: pendingVerificationUserId, otp }));
-    if (result.success) navigate("/dashboard");
+    if (result.success) {
+      dispatch(showToast("Account verified successfully.", "success"));
+      navigate("/dashboard");
+    }
   };
 
   const handleResend = async () => {
-    setResendMsg("");
     const result = await dispatch(resendOtp(pendingVerificationUserId));
-    setResendMsg(result.success ? "Code resent — check your inbox." : result.message || "Failed to resend");
+    dispatch(
+      showToast(
+        result.success ? "Code resent — check your inbox." : result.message || "Failed to resend",
+        result.success ? "success" : "error"
+      )
+    );
   };
 
   return (
@@ -53,9 +64,6 @@ const OtpVerifyPage = () => {
             className="w-full bg-transparent border border-border px-4 py-3 font-mono text-2xl tracking-[0.5em] text-center placeholder:text-textMuted focus:border-accent outline-none"
             required
           />
-
-          {error && <p className="font-mono text-xs text-accent">{error}</p>}
-          {resendMsg && <p className="font-mono text-xs text-accentSoft">{resendMsg}</p>}
 
           <button
             type="submit"

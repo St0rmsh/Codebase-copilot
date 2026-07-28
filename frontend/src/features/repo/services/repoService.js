@@ -19,3 +19,18 @@ export const embedRepo = async (repoId) => {
   const res = await axiosInstance.post(`/repos/${repoId}/embed`);
   return res.data;
 };
+
+export const buildRepoGraph = async (repoId) => {
+  const res = await axiosInstance.post(`/repos/${repoId}/graph`);
+  return res.data;
+};
+
+export const fetchRepoGraph = async (repoId) => {
+  const res = await axiosInstance.get(`/repos/${repoId}/graph`);
+  return res.data;
+};
+
+export const fetchRepoChunks = async (repoId) => {
+  const res = await axiosInstance.get(`/repos/${repoId}/chunks`);
+  return res.data;
+};

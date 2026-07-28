@@ -10,10 +10,14 @@ const userSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      required: [true, "Email is required"],
       unique: true,
       lowercase: true,
       trim: true,
+      required: function () {
+        return !this.githubId;
+      },
+      unique: true,
+      sparse: true,
     },
     password: {
       type: String,

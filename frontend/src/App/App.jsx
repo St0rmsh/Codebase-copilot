@@ -4,6 +4,7 @@ import { Provider, useDispatch } from "react-redux";
 import { router } from "./router";
 import { store } from "./store";
 import { fetchCurrentUser } from "../features/Auth/state/authSlice";
+import ToastContainer from "../components/ToastContainer";
 
 const Hydrator = ({ children }) => {
   const dispatch = useDispatch();
@@ -34,6 +35,7 @@ function App() {
   return (
     <Provider store={store}>
       <Hydrator>
+        <ToastContainer />
         <RouterProvider router={router} />
       </Hydrator>
     </Provider>

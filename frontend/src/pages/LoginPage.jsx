@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { useEffect } from "react";
 import { loginUser } from "../features/Auth/state/authSlice";
+import { showToast } from "../App/toastSlice";
+
+const errorMessages = {
+  missing_code: "GitHub authorization was cancelled or failed.",
+  github_signin_failed: "Github sign-in failed. Please try again.",
+};
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -9,7 +16,20 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { loading, error } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    const errCode = searchParams.get("error");
+    if (errCode) {
+      dispatch(showToast(errorMessages[errCode] || "Something went wrong.", "error"));
+      setSearchParams({});
+    }
+  }, [searchParams, dispatch, setSearchParams]);
+
+  useEffect(() => {
+    if (error) dispatch(showToast(error, "error"));
+  }, [error, dispatch]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -88,8 +108,6 @@ const LoginPage = () => {
                 </button>
               </div>
             </div>
-
-            {error && <p className="font-mono text-xs text-accent">{error}</p>}
 
             <button
               type="submit"

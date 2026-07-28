@@ -16,6 +16,7 @@ const config = {
     FRONTEND_URL: process.env.FRONTEND_URL,
     SMTP_EMAIL: process.env.SMTP_EMAIL,
     SMTP_APP_PASSWORD: process.env.SMTP_APP_PASSWORD,
+    COHERE_API_KEY: process.env.COHERE_API_KEY,
 };
 
 export default config;

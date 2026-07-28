@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import config from "../config/config.js";
 import { findUserById } from "../dao/user.dao.js";
 
+// src/middlewares/auth.middleware.js
 export const protect = async (req, res, next) => {
   try {
     const token = req.cookies?.token || req.headers.authorization?.split(" ")[1];
@@ -23,6 +24,6 @@ export const protect = async (req, res, next) => {
     next();
   } catch (error) {
     res.status(401);
-    next(new Error("Not authorized, token failed"));
+    next(new Error(`Not authorized: ${error.message}`)); // was hardcoded before — now shows real cause
   }
 };

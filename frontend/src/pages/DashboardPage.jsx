@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { useSelector } from "react-redux";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useSearchParams } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import RepoCard from "../features/repo/components/RepoCard";
 import GithubRepoPicker from "../features/Github/components/GithubRepoPicker";
@@ -7,28 +8,34 @@ import GithubConnectPrompt from "../features/Github/components/GithubConnectProm
 import Button from "../components/Button";
 import UserMenu from "../components/UserMenu";
 import { useRepos } from "../features/repo/hooks/useRepos";
-import { useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
-import { useDispatch } from "react-redux";
 import { fetchCurrentUser } from "../features/Auth/state/authSlice";
+import { showToast } from "../App/toastSlice";
 
 const DashboardPage = () => {
-  const { repos, loading } = useRepos();
+  const { repos, loading, refetch } = useRepos();
   const { user } = useSelector((state) => state.auth);
   const [pickerOpen, setPickerOpen] = useState(false);
-  
-  // inside the component, alongside other hooks:
   const [searchParams, setSearchParams] = useSearchParams();
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (searchParams.get("github") === "connected") {
-    dispatch(fetchCurrentUser());
-    setSearchParams({}); // clean up the URL
-  }
-}, [searchParams, dispatch, setSearchParams]);
+    const githubStatus = searchParams.get("github");
+    if (githubStatus === "connected") {
+      dispatch(fetchCurrentUser());
+      dispatch(showToast("Github account connected successfully.", "success"));
+      setSearchParams({});
+    } else if (githubStatus === "error") {
+      dispatch(showToast("Failed to connect Github account. Please try again.", "error"));
+      setSearchParams({});
+    }
+  }, [searchParams, dispatch, setSearchParams]);
 
   const totalModules = repos.reduce((sum, r) => sum + (r.fileCount || 0), 0);
+
+  const handleSync = () => {
+    refetch();
+    dispatch(showToast("Repositories synced.", "success", 2500));
+  };
 
   return (
     <div className="flex min-h-screen bg-base">
@@ -41,8 +48,8 @@ const DashboardPage = () => {
             className="bg-transparent outline-none placeholder:text-textMuted"
           />
           <div className="flex items-center gap-6">
-            <span>Sync</span>
-            <Button variant="outline" className="py-2 px-4">Deploy</Button>
+            <button onClick={handleSync} className="hover:text-white">Sync</button>
+            <Button variant="outline" className="py-2 px-4" disabled>Deploy</Button>
             <UserMenu />
           </div>
         </div>

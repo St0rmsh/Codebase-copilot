@@ -18,7 +18,7 @@ export const getGithubAuthUrl = () => {
   const params = new URLSearchParams({
     client_id: config.GITHUB_CLIENT_ID,
     redirect_uri: config.GITHUB_CALLBACK_URL,
-    scope: "repo read:user",
+    scope: "repo read:user user:email",
   });
   return `https://github.com/login/oauth/authorize?${params.toString()}`;
 };

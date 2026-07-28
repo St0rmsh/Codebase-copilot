@@ -9,6 +9,14 @@ const fileSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const graphEdgeSchema = new mongoose.Schema(
+  {
+    from: { type: String, required: true },
+    to: { type: String, required: true },
+  },
+  { _id: false }
+);
+
 const repoSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
@@ -26,6 +34,7 @@ const repoSchema = new mongoose.Schema(
     },
     files: [fileSchema],
     fileCount: { type: Number, default: 0 },
+    dependencyGraph: [graphEdgeSchema],
     errorMessage: { type: String, default: null },
   },
   { timestamps: true }
