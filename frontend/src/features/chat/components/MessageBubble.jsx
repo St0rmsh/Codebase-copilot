@@ -1,4 +1,5 @@
 import CitationChip from "./CitationChip";
+import MarkdownRenderer from "../../../components/MarkdownRenderer";
 
 const MessageBubble = ({ message, onCitationClick, showCursor }) => {
   const isUser = message.role === "user";
@@ -11,13 +12,17 @@ const MessageBubble = ({ message, onCitationClick, showCursor }) => {
         </div>
       )}
 
-      <div
-        className={`max-w-[85%] px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
-          isUser ? "bg-panel border border-border" : ""
-        }`}
-      >
-        {message.content}
-        {showCursor && <span className="inline-block w-2 h-4 bg-accent ml-0.5 animate-pulse align-middle" />}
+      <div className={`max-w-[85%] px-4 py-3 text-sm ${isUser ? "bg-panel border border-border" : ""}`}>
+        {isUser ? (
+          <span className="whitespace-pre-wrap">{message.content}</span>
+        ) : (
+          <>
+            <MarkdownRenderer content={message.content} />
+            {showCursor && (
+              <span className="inline-block w-2 h-4 bg-accent ml-0.5 animate-pulse align-middle" />
+            )}
+          </>
+        )}
       </div>
 
       {!isUser && message.citedChunks?.length > 0 && (

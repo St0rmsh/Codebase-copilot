@@ -5,6 +5,8 @@ import { ChatCohere } from "@langchain/cohere";
 import { HumanMessage, AIMessage, SystemMessage } from "@langchain/core/messages";
 import { searchRepoChunks } from "./search.service.js";
 import config from "../config/config.js";
+import { searchMultiRepoChunks } from "./search.service.js";
+
 
 const geminiLLM = new ChatGoogleGenerativeAI({
   apiKey: config.GOOGLE_API_KEY,
@@ -142,6 +144,52 @@ export const runAgentStream = async (repoId, conversationHistory, newQuestion) =
   const messages = [new SystemMessage(systemPrompt), ...historyMessages, new HumanMessage(newQuestion)];
 
   const citedChunks = chunks.map((c) => ({
+    filePath: c.filePath,
+    symbolName: c.symbolName,
+    startLine: c.startLine,
+    endLine: c.endLine,
+    code: c.code,
+  }));
+
+  return {
+    tokenStream: streamWithFallback(messages),
+    citedChunks,
+  };
+};
+
+
+
+
+
+
+
+
+const buildMultiRepoSystemPrompt = (chunks, repoNameById) => {
+  const contextBlock = chunks
+    .map((c, i) => {
+      const repoName = repoNameById[c.repo?.toString()] || "unknown-repo";
+      return `[${i + 1}] Repo: ${repoName} | File: ${c.filePath} (lines ${c.startLine}-${c.endLine})\nSymbol: ${c.symbolName}\n\`\`\`\n${c.code}\n\`\`\``;
+    })
+    .join("\n\n");
+
+  return `You are a codebase onboarding assistant with access to MULTIPLE repositories. Answer the user's question using ONLY the provided code context below. Always cite which repo AND file/line the information comes from (e.g. "in api-server/auth.js (lines 5-50)"). When comparing or relating code across repos, be explicit about which repo each piece belongs to. If the context doesn't contain enough information, say so honestly.
+
+CODE CONTEXT FROM MULTIPLE REPOS:
+${contextBlock}`;
+};
+
+export const runMultiRepoAgentStream = async (repoIds, repoNameById, conversationHistory, newQuestion) => {
+  const chunks = await searchMultiRepoChunks(repoIds, newQuestion, 4);
+
+  const systemPrompt = buildMultiRepoSystemPrompt(chunks, repoNameById);
+  const historyMessages = conversationHistory.map((m) =>
+    m.role === "user" ? new HumanMessage(m.content) : new AIMessage(m.content)
+  );
+  const messages = [new SystemMessage(systemPrompt), ...historyMessages, new HumanMessage(newQuestion)];
+
+  const citedChunks = chunks.map((c) => ({
+    repoId: c.repo,
+    repoName: repoNameById[c.repo?.toString()] || "unknown-repo",
     filePath: c.filePath,
     symbolName: c.symbolName,
     startLine: c.startLine,

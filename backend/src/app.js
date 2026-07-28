@@ -7,6 +7,7 @@ import authRoutes from "./routes/auth.routes.js"
 import githubRoutes from "./routes/github.routes.js";
 import repoRoutes from "./routes/repo.routes.js";
 import chunkRoutes from "./routes/chunk.routes.js";
+import multiRepoChatRoutes from "./routes/multiRepoChat.routes.js";
 
 
 
@@ -37,5 +38,10 @@ app.use("/api/repos", repoRoutes);
 // @routes http://localhost:3000/api/repos
 // repos routes
 app.use("/api/repos", chunkRoutes);
+
+
+// @routes http://localhost:3000/api/multi-repo-chat
+// multi-repo chat routes
+app.use("/api/multi-repo-chat", multiRepoChatRoutes);
 
 export default app

@@ -1,10 +1,12 @@
 import express from "express";
-import { runChunking, listChunks } from "../controllers/chunk.controller.js";
+import { runChunking, listChunks, getFileChunks } from "../controllers/chunk.controller.js";
 import { runEmbedding } from "../controllers/embedding.controller.js";
 import { search } from "../controllers/search.controller.js";
 import { chat, chatStream } from "../controllers/chat.controller.js";
 import { protect } from "../middlewares/auth.middleware.js";
 import { buildGraph, getGraph } from "../controllers/graph.controller.js";
+import { getOnboardingDoc } from "../controllers/onboarding.controller.js";
+import { trace } from "../controllers/trace.controller.js";
 
 const router = express.Router();
 
@@ -52,5 +54,23 @@ router.post("/:repoId/graph", protect, buildGraph);
 // @route GET /api/chunks/:repoId/graph
 // @access Private
 router.get("/:repoId/graph", protect, getGraph);
+
+
+// @desc get onboarding doc
+// @route GET /api/chunks/:repoId/onboarding-doc
+// @access Private
+router.get("/:repoId/onboarding-doc", protect, getOnboardingDoc);
+
+
+// @desc trace symbol
+// @route GET /api/chunks/:repoId/trace
+// @access Private
+router.get("/:repoId/trace", protect, trace);
+
+// @desc get chunks for a specific file
+// @route GET /api/chunks/:repoId/file-chunks
+// @access Private
+router.get("/:repoId/file-chunks", protect, getFileChunks);
+
 
 export default router;

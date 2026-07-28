@@ -4,8 +4,12 @@ import RegisterPage from "../pages/RegisterPage";
 import OtpVerifyPage from "../pages/OtpVerifyPage";
 import DashboardPage from "../pages/DashboardPage";
 import RepoChatPage from "../pages/RepoChatPage";
+import CompareReposPage from "../pages/CompareReposPage";
 import ComingSoonPage from "../pages/ComingSoonPage";
 import ProtectedRoute from "../components/ProtectedRoute";
+import RepositoryPage from "../pages/RepositoryPage";
+
+
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
@@ -24,6 +28,14 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <RepoChatPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/compare",
+    element: (
+      <ProtectedRoute>
+        <CompareReposPage />
       </ProtectedRoute>
     ),
   },
@@ -59,6 +71,14 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+  {
+  path: "/repository",
+  element: (
+    <ProtectedRoute>
+      <RepositoryPage />
+    </ProtectedRoute>
+  ),
+},
   { path: "/", element: <Navigate to="/dashboard" replace /> },
   { path: "*", element: <Navigate to="/dashboard" replace /> },
 ]);

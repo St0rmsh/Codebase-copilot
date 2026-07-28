@@ -6,6 +6,8 @@ const messageSchema = new mongoose.Schema(
     content: { type: String, required: true },
     citedChunks: [
       {
+        repoId: mongoose.Schema.Types.ObjectId,
+        repoName: String,
         filePath: String,
         symbolName: String,
         startLine: Number,
@@ -20,7 +22,8 @@ const messageSchema = new mongoose.Schema(
 const conversationSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    repo: { type: mongoose.Schema.Types.ObjectId, ref: "Repo", required: true },
+    repo: { type: mongoose.Schema.Types.ObjectId, ref: "Repo" }, // single-repo conversations
+    repos: [{ type: mongoose.Schema.Types.ObjectId, ref: "Repo" }], // multi-repo conversations
     messages: [messageSchema],
   },
   { timestamps: true }

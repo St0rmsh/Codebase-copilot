@@ -3,6 +3,7 @@ import Button from "./Button";
 
 const navItems = [
   { label: "Workspace", path: "/dashboard", icon: "▣" },
+  { label: "Compare", path: "/compare", icon: "⇄" },
   { label: "Repository", path: "/repository", icon: "⌘" },
   { label: "Debugger", path: "/debugger", icon: "⚙" },
   { label: "Indexing", path: "/indexing", icon: "▤" },

@@ -50,3 +50,8 @@ export const chunkRepo = async (repoId) => {
 export const getRepoChunks = async (repoId) => {
   return await findChunksByRepo(repoId);
 };
+
+
+export const getChunksForFile = async (repoId, filePath) => {
+  return await Chunk.find({ repo: repoId, filePath }).sort({ startLine: 1 });
+};

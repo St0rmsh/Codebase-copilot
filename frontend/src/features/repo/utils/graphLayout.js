@@ -9,7 +9,6 @@ export const buildFlowGraph = (edges) => {
 
   const nodeList = Array.from(nodeIds);
 
-  // simple layered layout: nodes with no incoming edges go on the left, others fan out right
   const incomingCount = {};
   nodeList.forEach((id) => (incomingCount[id] = 0));
   edges.forEach((e) => {
@@ -29,7 +28,7 @@ export const buildFlowGraph = (edges) => {
 
   roots.forEach((id) => assignLevel(id, 0));
   nodeList.forEach((id) => {
-    if (!(id in levels)) levels[id] = 0; // orphan/cyclic fallback
+    if (!(id in levels)) levels[id] = 0;
   });
 
   const levelCounts = {};
@@ -65,3 +64,70 @@ export const buildFlowGraph = (edges) => {
 
   return { nodes, edges: flowEdges };
 };
+
+// Builds a focused call-graph view for a single symbol: it, its callers, and its callees
+export const buildTraceFlowGraph = (traceData) => {
+  const { symbol, calledBy, calls, fullGraph } = traceData;
+
+  const centerX = 300;
+  const nodes = [
+    {
+      id: symbol,
+      data: { label: symbol },
+      position: { x: centerX, y: 200 },
+      style: {
+        background: "#E8302A",
+        color: "#fff",
+        border: "1px solid #E8302A",
+        borderRadius: 0,
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: 12,
+        fontWeight: "bold",
+        padding: "10px 16px",
+        width: 180,
+      },
+    },
+    ...calledBy.map((name, i) => ({
+      id: `caller-${name}`,
+      data: { label: name },
+      position: { x: 0, y: i * 90 },
+      style: nodeStyleMuted(),
+    })),
+    ...calls.map((name, i) => ({
+      id: `callee-${name}`,
+      data: { label: name },
+      position: { x: centerX + 300, y: i * 90 },
+      style: nodeStyleMuted(),
+    })),
+  ];
+
+  const edges = [
+    ...calledBy.map((name, i) => ({
+      id: `in-${i}`,
+      source: `caller-${name}`,
+      target: symbol,
+      style: { stroke: "#F2A79D", strokeWidth: 2 },
+      animated: true,
+    })),
+    ...calls.map((name, i) => ({
+      id: `out-${i}`,
+      source: symbol,
+      target: `callee-${name}`,
+      style: { stroke: "#E8302A", strokeWidth: 2 },
+      animated: true,
+    })),
+  ];
+
+  return { nodes, edges };
+};
+
+const nodeStyleMuted = () => ({
+  background: "#141414",
+  color: "#CFCFCF",
+  border: "1px solid #262626",
+  borderRadius: 0,
+  fontFamily: "'JetBrains Mono', monospace",
+  fontSize: 11,
+  padding: "8px 14px",
+  width: 160,
+});

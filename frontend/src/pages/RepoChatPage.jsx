@@ -6,9 +6,17 @@ import MessageBubble from "../features/chat/components/MessageBubble";
 import ChatInput from "../features/chat/components/ChatInput";
 import CodeViewer from "../features/chat/components/CodeViewer";
 import DependencyGraphView from "../features/repo/components/DependencyGraphView";
+import TraceSymbolPanel from "../features/repo/components/TraceSymbolPanel";
+import OnboardingDocModal from "../features/repo/components/OnboardingDocModal";
 import { useChat } from "../features/chat/hooks/useChat";
 import { useRepoById } from "../features/repo/hooks/useRepoById";
 import { useRepoChunks } from "../features/repo/hooks/useRepoChunks";
+
+const TABS = [
+  { id: "code", label: "Code" },
+  { id: "graph", label: "Dependency Graph" },
+  { id: "trace", label: "Trace Symbol" },
+];
 
 const RepoChatPage = () => {
   const { repoId } = useParams();
@@ -17,6 +25,7 @@ const RepoChatPage = () => {
   const { loadChunks, findChunksByFile } = useRepoChunks(repoId);
   const [activeChunk, setActiveChunk] = useState(null);
   const [rightPanel, setRightPanel] = useState("code");
+  const [docModalOpen, setDocModalOpen] = useState(false);
 
   useEffect(() => {
     loadChunks();
@@ -52,8 +61,9 @@ const RepoChatPage = () => {
             <span className="bg-border px-2 py-1">v1.0.0-stable</span>
           </div>
           <div className="flex items-center gap-6">
-            <span>Sync</span>
-            <button className="bg-accent text-white px-4 py-2 tracking-widest2">Deploy</button>
+            <button onClick={() => setDocModalOpen(true)} className="hover:text-white">
+              📄 Onboarding Doc
+            </button>
             <UserMenu />
           </div>
         </div>
@@ -87,32 +97,35 @@ const RepoChatPage = () => {
 
           <div className="w-1/2 border-l border-border flex flex-col">
             <div className="flex border-b border-border">
-              <button
-                onClick={() => setRightPanel("code")}
-                className={`flex-1 py-3 font-mono text-xs tracking-widest2 uppercase ${
-                  rightPanel === "code" ? "text-accent border-b-2 border-accent" : "text-textMuted"
-                }`}
-              >
-                Code
-              </button>
-              <button
-                onClick={() => setRightPanel("graph")}
-                className={`flex-1 py-3 font-mono text-xs tracking-widest2 uppercase ${
-                  rightPanel === "graph" ? "text-accent border-b-2 border-accent" : "text-textMuted"
-                }`}
-              >
-                Dependency Graph
-              </button>
+              {TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setRightPanel(tab.id)}
+                  className={`flex-1 py-3 font-mono text-xs tracking-widest2 uppercase ${
+                    rightPanel === tab.id ? "text-accent border-b-2 border-accent" : "text-textMuted"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
 
-            {rightPanel === "code" ? (
-              <CodeViewer chunk={activeChunk} />
-            ) : (
+            {rightPanel === "code" && <CodeViewer chunk={activeChunk} />}
+            {rightPanel === "graph" && (
               <DependencyGraphView repoId={repoId} onNodeClick={handleGraphNodeClick} />
             )}
+            {rightPanel === "trace" && <TraceSymbolPanel repoId={repoId} />}
           </div>
         </div>
       </div>
+
+      {docModalOpen && (
+        <OnboardingDocModal
+          repoId={repoId}
+          repoName={repo?.name || "repo"}
+          onClose={() => setDocModalOpen(false)}
+        />
+      )}
     </div>
   );
 };

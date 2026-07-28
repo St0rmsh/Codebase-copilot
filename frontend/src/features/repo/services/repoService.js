@@ -34,3 +34,19 @@ export const fetchRepoChunks = async (repoId) => {
   const res = await axiosInstance.get(`/repos/${repoId}/chunks`);
   return res.data;
 };
+
+export const fetchOnboardingDoc = async (repoId) => {
+  const res = await axiosInstance.get(`/repos/${repoId}/onboarding-doc`);
+  return res.data;
+};
+
+
+export const fetchSymbolTrace = async (repoId, symbolName) => {
+  const res = await axiosInstance.get(`/repos/${repoId}/trace`, { params: { symbolName } });
+  return res.data;
+};
+
+export const fetchFileChunks = async (repoId, filePath) => {
+  const res = await axiosInstance.get(`/repos/${repoId}/file-chunks`, { params: { filePath } });
+  return res.data;
+};
