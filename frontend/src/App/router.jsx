@@ -43,7 +43,7 @@ export const router = createBrowserRouter([
     path: "/repository",
     element: (
       <ProtectedRoute>
-        <ComingSoonPage title="Repository" />
+           <RepositoryPage />
       </ProtectedRoute>
     ),
   },
@@ -71,14 +71,6 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-  {
-  path: "/repository",
-  element: (
-    <ProtectedRoute>
-      <RepositoryPage />
-    </ProtectedRoute>
-  ),
-},
   { path: "/", element: <Navigate to="/dashboard" replace /> },
   { path: "*", element: <Navigate to="/dashboard" replace /> },
 ]);
