@@ -56,3 +56,13 @@ export const markUserVerified = async (userId) => {
     { returnDocument: "after" }
   );
 };
+
+
+
+export const updateUserProfile = async (userId, updates) => {
+  return await User.findByIdAndUpdate(userId, updates, { returnDocument: "after" });
+};
+
+export const deleteUserAccount = async (userId) => {
+  return await User.findByIdAndDelete(userId);
+};

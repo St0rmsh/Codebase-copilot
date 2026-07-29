@@ -37,6 +37,20 @@ const DashboardPage = () => {
     dispatch(showToast("Repositories synced.", "success", 2500));
   };
 
+
+  const handleDeployAll = async () => {
+  dispatch(showToast("Rebuilding all repositories...", "info"));
+  for (const repo of repos.filter((r) => r.status === "indexed")) {
+    try {
+      await rebuildRepo(repo._id);
+    } catch {
+      continue;
+    }
+  }
+  dispatch(showToast("All repositories rebuilt.", "success"));
+  refetch();
+};
+
   return (
     <div className="flex min-h-screen bg-base">
       <Sidebar />
@@ -49,8 +63,7 @@ const DashboardPage = () => {
           />
           <div className="flex items-center gap-6">
             <button onClick={handleSync} className="hover:text-white">Sync</button>
-            <Button variant="outline" className="py-2 px-4" disabled>Deploy</Button>
-            <UserMenu />
+            <Button variant="outline" className="py-2 px-4" onClick={handleDeployAll}>Deploy</Button>            <UserMenu />
           </div>
         </div>
 
@@ -95,7 +108,7 @@ const DashboardPage = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {repos.map((repo) => (
-              <RepoCard key={repo._id} repo={repo} />
+             <RepoCard key={repo._id} repo={repo} onSynced={refetch} />
             ))}
           </div>
         )}

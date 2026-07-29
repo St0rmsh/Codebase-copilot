@@ -1,5 +1,9 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import StatusBadge from "../../../components/StatusBadge";
+import { syncRepo } from "../services/repoService";
+import { showToast } from "../../../App/toastSlice";
 
 const timeAgo = (dateStr) => {
   const diffMs = Date.now() - new Date(dateStr).getTime();
@@ -11,9 +15,34 @@ const timeAgo = (dateStr) => {
   return `${Math.floor(hours / 24)}d ago`;
 };
 
-const RepoCard = ({ repo }) => {
+const RepoCard = ({ repo, onSynced }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const [syncing, setSyncing] = useState(false);
   const isReady = repo.status === "indexed";
+
+  const handleSync = async (e) => {
+    e.stopPropagation();
+    setSyncing(true);
+    try {
+      const result = await syncRepo(repo._id);
+      if (result.hadChanges) {
+        dispatch(
+          showToast(
+            `Synced: ${result.added} added, ${result.modified} modified, ${result.deleted} deleted.`,
+            "success"
+          )
+        );
+      } else {
+        dispatch(showToast("Already up to date.", "info"));
+      }
+      onSynced?.();
+    } catch {
+      dispatch(showToast("Sync failed.", "error"));
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   return (
     <div
@@ -24,11 +53,23 @@ const RepoCard = ({ repo }) => {
     >
       <div className="flex justify-between items-start mb-6">
         <h3 className="font-display text-lg uppercase leading-tight">{repo.name}</h3>
-        {repo.language && (
-          <span className="font-mono text-xs bg-border px-2 py-1 uppercase text-textMuted shrink-0 ml-2">
-            {repo.language}
-          </span>
-        )}
+        <div className="flex items-center gap-2 shrink-0 ml-2">
+          {repo.language && (
+            <span className="font-mono text-xs bg-border px-2 py-1 uppercase text-textMuted">
+              {repo.language}
+            </span>
+          )}
+          {isReady && (
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              title="Sync with Github"
+              className="font-mono text-xs text-textMuted hover:text-accent disabled:opacity-50"
+            >
+              {syncing ? "⟳" : "↻"}
+            </button>
+          )}
+        </div>
       </div>
 
       <p className="font-mono text-xs text-textMuted tracking-widest2 uppercase mb-1">

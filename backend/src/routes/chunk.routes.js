@@ -7,6 +7,9 @@ import { protect } from "../middlewares/auth.middleware.js";
 import { buildGraph, getGraph } from "../controllers/graph.controller.js";
 import { getOnboardingDoc } from "../controllers/onboarding.controller.js";
 import { trace } from "../controllers/trace.controller.js";
+import { getDebugInfo, rerunChunkingHandler, rerunEmbeddingHandler, rerunGraphHandler } from "../controllers/debug.controller.js";
+import { syncRepoHandler } from "../controllers/sync.controller.js";
+
 
 const router = express.Router();
 
@@ -71,6 +74,37 @@ router.get("/:repoId/trace", protect, trace);
 // @route GET /api/chunks/:repoId/file-chunks
 // @access Private
 router.get("/:repoId/file-chunks", protect, getFileChunks);
+
+
+// @desc get debug info
+// @route GET /api/chunks/:repoId/debug
+// @access Private
+router.get("/:repoId/debug", protect, getDebugInfo);
+
+
+// @desc rerun chunking
+// @route POST /api/chunks/:repoId/debug/rerun-chunk
+// @access Private
+router.post("/:repoId/debug/rerun-chunk", protect, rerunChunkingHandler);
+
+
+// @desc rerun embedding
+// @route POST /api/chunks/:repoId/debug/rerun-embed
+// @access Private
+router.post("/:repoId/debug/rerun-embed", protect, rerunEmbeddingHandler);
+
+
+// @desc rerun graph
+// @route POST /api/chunks/:repoId/debug/rerun-graph
+// @access Private
+router.post("/:repoId/debug/rerun-graph", protect, rerunGraphHandler);
+
+
+
+// @desc sync repo
+// @route POST /api/chunks/:repoId/sync
+// @access Private
+router.post("/:repoId/sync", protect, syncRepoHandler);
 
 
 export default router;

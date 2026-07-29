@@ -1,9 +1,13 @@
 import simpleGit from "simple-git";
 import fs from "fs/promises";
 import path from "path";
-import { createRepo, updateRepoStatus, findReposByUser } from "../dao/repo.dao.js";
+import { createRepo, updateRepoStatus, findReposByUser,deleteRepoById,findRepoById } from "../dao/repo.dao.js";
 import { findUserByIdWithGithubToken } from "../dao/user.dao.js";
 import { walkDirectory } from "../utils/fileWalker.js";
+import { deleteChunksByRepo } from "../dao/chunk.dao.js"
+
+
+
 
 const TMP_DIR = path.resolve("tmp", "repos");
 
@@ -64,3 +68,26 @@ export const ingestRepo = async (userId, repoData) => {
 export const getUserRepos = async (userId) => {
   return await findReposByUser(userId);
 };
+
+
+
+
+
+export const deleteRepoAndData = async (repoId, userId) => {
+  const repo = await findRepoById(repoId);
+  if (!repo || repo.user.toString() !== userId.toString()) {
+    const error = new Error("Repo not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  await deleteChunksByRepo(repoId);
+  await deleteRepoById(repoId);
+
+  if (repo.localPath) {
+    await fs.rm(repo.localPath, { recursive: true, force: true }).catch(() => {});
+  }
+
+  return { message: "Repository and all associated data deleted" };
+};
+

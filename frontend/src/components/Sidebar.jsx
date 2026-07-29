@@ -1,5 +1,7 @@
-import { NavLink } from "react-router-dom";
+import { useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import Button from "./Button";
+import GithubRepoPicker from "../features/Github/components/GithubRepoPicker";
 
 const navItems = [
   { label: "Workspace", path: "/dashboard", icon: "▣" },
@@ -11,6 +13,16 @@ const navItems = [
 ];
 
 const Sidebar = () => {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleNewProject = () => setPickerOpen(true);
+
+  const handleClosePicker = () => {
+    setPickerOpen(false);
+    navigate("/dashboard");
+  };
+
   return (
     <aside className="w-64 bg-base border-r border-border flex flex-col justify-between min-h-screen py-6">
       <div>
@@ -40,7 +52,7 @@ const Sidebar = () => {
       </div>
 
       <div className="px-6">
-        <Button variant="primary" className="w-full mb-6">
+        <Button variant="primary" className="w-full mb-6" onClick={handleNewProject}>
           New Project
         </Button>
         <div className="border-t border-border pt-4 flex flex-col gap-3 font-mono text-xs text-textMuted tracking-widest2 uppercase">
@@ -50,6 +62,8 @@ const Sidebar = () => {
           </button>
         </div>
       </div>
+
+      {pickerOpen && <GithubRepoPicker onClose={handleClosePicker} />}
     </aside>
   );
 };

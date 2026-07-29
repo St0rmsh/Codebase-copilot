@@ -9,6 +9,9 @@ import {
   markUserVerified,
 } from "../dao/user.dao.js";
 import { sendOtpEmail } from "../utils/mailer.js";
+import { updateUserProfile, deleteUserAccount, findUserByIdWithGithubToken } from "../dao/user.dao.js";
+import bcrypt from "bcrypt";
+
 
 const generateToken = (userId) => {
   return jwt.sign({ id: userId }, config.JWT_SECRET, { expiresIn: "7d" });
@@ -137,4 +140,49 @@ export const getCurrentUser = async (userId) => {
     createdAt: user.createdAt,
     githubUsername: user.githubUsername || null,
   };
+};
+
+
+
+export const updateProfile = async (userId, { name }) => {
+  const updated = await updateUserProfile(userId, { name });
+  return {
+    id: updated._id,
+    name: updated.name,
+    email: updated.email,
+    githubUsername: updated.githubUsername,
+  };
+};
+
+export const changePassword = async (userId, { currentPassword, newPassword }) => {
+  const user = await findUserById(userId);
+  const fullUser = await User.findById(userId).select("+password");
+
+  if (!fullUser.password) {
+    const error = new Error("This account uses Github sign-in and has no password to change");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const isMatch = await fullUser.comparePassword(currentPassword);
+  if (!isMatch) {
+    const error = new Error("Current password is incorrect");
+    error.statusCode = 401;
+    throw error;
+  }
+
+  fullUser.password = newPassword;
+  await fullUser.save(); // triggers pre-save hash hook
+
+  return { message: "Password updated successfully" };
+};
+
+export const disconnectGithub = async (userId) => {
+  await updateGithubInfo(userId, { githubId: null, githubUsername: null, githubAccessToken: null });
+  return { message: "Github disconnected" };
+};
+
+export const deleteAccount = async (userId) => {
+  await deleteUserAccount(userId);
+  return { message: "Account deleted" };
 };

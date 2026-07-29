@@ -25,3 +25,11 @@ export const saveDependencyGraph = async (repoId, dependencyGraph) => {
 export const findReposByUserId = async (userId) => {
   return await Repo.find({ user: userId }).select("_id name fullName status").sort({ name: 1 });
 };
+
+export const findRepoWithStatus = async (repoId) => {
+  return await Repo.findById(repoId).select("name fullName status errorMessage fileCount localPath");
+};
+
+export const deleteRepoById = async (repoId) => {
+  return await Repo.findByIdAndDelete(repoId);
+};

@@ -8,6 +8,9 @@ import CompareReposPage from "../pages/CompareReposPage";
 import ComingSoonPage from "../pages/ComingSoonPage";
 import ProtectedRoute from "../components/ProtectedRoute";
 import RepositoryPage from "../pages/RepositoryPage";
+import DebuggerPage from "../pages/DebuggerPage";
+import IndexingPage from "../pages/IndexingPage";
+import SettingsPage from "../pages/SettingsPage";
 
 
 
@@ -51,7 +54,7 @@ export const router = createBrowserRouter([
     path: "/debugger",
     element: (
       <ProtectedRoute>
-        <ComingSoonPage title="Debugger" />
+      <DebuggerPage />
       </ProtectedRoute>
     ),
   },
@@ -59,7 +62,7 @@ export const router = createBrowserRouter([
     path: "/indexing",
     element: (
       <ProtectedRoute>
-        <ComingSoonPage title="Indexing" />
+      <IndexingPage />
       </ProtectedRoute>
     ),
   },
@@ -67,10 +70,11 @@ export const router = createBrowserRouter([
     path: "/settings",
     element: (
       <ProtectedRoute>
-        <ComingSoonPage title="Settings" />
+      <SettingsPage />
       </ProtectedRoute>
     ),
   },
+  
   { path: "/", element: <Navigate to="/dashboard" replace /> },
   { path: "*", element: <Navigate to="/dashboard" replace /> },
 ]);

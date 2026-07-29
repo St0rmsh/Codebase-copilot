@@ -6,7 +6,7 @@ const chunkSchema = new mongoose.Schema(
     filePath: { type: String, required: true },
     chunkType: {
       type: String,
-      enum: ["function", "class", "component", "arrow_function", "method"],
+      enum: ["function", "class", "component", "arrow_function", "method", "file"],
       required: true,
     },
     symbolName: { type: String, default: "anonymous" },

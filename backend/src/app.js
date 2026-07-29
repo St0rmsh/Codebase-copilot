@@ -8,7 +8,8 @@ import githubRoutes from "./routes/github.routes.js";
 import repoRoutes from "./routes/repo.routes.js";
 import chunkRoutes from "./routes/chunk.routes.js";
 import multiRepoChatRoutes from "./routes/multiRepoChat.routes.js";
-
+import indexingRoutes from "./routes/indexing.routes.js";
+import settingsRoutes from "./routes/settings.routes.js";
 
 
 
@@ -43,5 +44,14 @@ app.use("/api/repos", chunkRoutes);
 // @routes http://localhost:3000/api/multi-repo-chat
 // multi-repo chat routes
 app.use("/api/multi-repo-chat", multiRepoChatRoutes);
+
+
+// @routes http://localhost:3000/api/indexing
+// indexing routes
+app.use("/api/indexing", indexingRoutes);
+
+
+
+app.use("/api/settings", settingsRoutes);
 
 export default app

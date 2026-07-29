@@ -11,6 +11,9 @@ import OnboardingDocModal from "../features/repo/components/OnboardingDocModal";
 import { useChat } from "../features/chat/hooks/useChat";
 import { useRepoById } from "../features/repo/hooks/useRepoById";
 import { useRepoChunks } from "../features/repo/hooks/useRepoChunks";
+import { useDispatch } from "react-redux";
+import { rebuildRepo } from "../features/repo/services/repoService";
+import { showToast } from "../App/toastSlice";
 
 const TABS = [
   { id: "code", label: "Code" },
@@ -26,6 +29,8 @@ const RepoChatPage = () => {
   const [activeChunk, setActiveChunk] = useState(null);
   const [rightPanel, setRightPanel] = useState("code");
   const [docModalOpen, setDocModalOpen] = useState(false);
+  const dispatch = useDispatch();
+  const [rebuilding, setRebuilding] = useState(false);
 
   useEffect(() => {
     loadChunks();
@@ -50,6 +55,20 @@ const RepoChatPage = () => {
     setRightPanel("code");
   };
 
+
+
+  const handleDeploy = async () => {
+  setRebuilding(true);
+  try {
+    await rebuildRepo(repoId);
+    dispatch(showToast("Repository rebuilt successfully.", "success"));
+  } catch {
+    dispatch(showToast("Rebuild failed.", "error"));
+  } finally {
+    setRebuilding(false);
+  }
+};
+
   return (
     <div className="flex min-h-screen bg-base">
       <Sidebar />
@@ -61,8 +80,11 @@ const RepoChatPage = () => {
             <span className="bg-border px-2 py-1">v1.0.0-stable</span>
           </div>
           <div className="flex items-center gap-6">
-            <button onClick={() => setDocModalOpen(true)} className="hover:text-white">
+           <button onClick={() => setDocModalOpen(true)} className="hover:text-white">
               📄 Onboarding Doc
+            </button>
+            <button onClick={handleDeploy} disabled={rebuilding} className="bg-accent text-white px-4 py-2 tracking-widest2 disabled:opacity-50">
+              {rebuilding ? "Deploying..." : "Deploy"}
             </button>
             <UserMenu />
           </div>

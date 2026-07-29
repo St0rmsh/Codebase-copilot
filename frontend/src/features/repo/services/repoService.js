@@ -50,3 +50,38 @@ export const fetchFileChunks = async (repoId, filePath) => {
   const res = await axiosInstance.get(`/repos/${repoId}/file-chunks`, { params: { filePath } });
   return res.data;
 };
+
+
+export const fetchRepoDebugInfo = async (repoId) => {
+  const res = await axiosInstance.get(`/repos/${repoId}/debug`);
+  return res.data;
+};
+
+export const rerunRepoChunking = async (repoId) => {
+  const res = await axiosInstance.post(`/repos/${repoId}/debug/rerun-chunk`);
+  return res.data;
+};
+
+export const rerunRepoEmbedding = async (repoId) => {
+  const res = await axiosInstance.post(`/repos/${repoId}/debug/rerun-embed`);
+  return res.data;
+};
+
+export const rerunRepoGraph = async (repoId) => {
+  const res = await axiosInstance.post(`/repos/${repoId}/debug/rerun-graph`);
+  return res.data;
+};
+
+
+export const rebuildRepo = async (repoId) => {
+  await chunkRepo(repoId);
+  await embedRepo(repoId);
+  await buildRepoGraph(repoId);
+  return { message: "Rebuild complete" };
+};
+
+
+export const syncRepo = async (repoId) => {
+  const res = await axiosInstance.post(`/repos/${repoId}/sync`);
+  return res.data;
+};
