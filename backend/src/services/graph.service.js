@@ -3,7 +3,9 @@ import path from "path";
 import { findRepoById, saveDependencyGraph } from "../dao/repo.dao.js";
 import { buildImportGraph } from "../utils/importGraphBuilder.js";
 
-const CHUNKABLE_EXTENSIONS = new Set([".js", ".jsx", ".ts", ".tsx"]);
+const CHUNKABLE_EXTENSIONS = new Set([
+  ".js", ".jsx", ".ts", ".tsx", ".css", ".scss", ".html", ".py", ".c", ".cpp", ".cc", ".h", ".hpp", ".java",
+]);
 
 export const generateDependencyGraph = async (repoId) => {
   const repo = await findRepoById(repoId);

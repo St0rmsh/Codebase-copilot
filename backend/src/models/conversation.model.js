@@ -22,12 +22,14 @@ const messageSchema = new mongoose.Schema(
 const conversationSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    repo: { type: mongoose.Schema.Types.ObjectId, ref: "Repo" }, // single-repo conversations
-    repos: [{ type: mongoose.Schema.Types.ObjectId, ref: "Repo" }], // multi-repo conversations
+    repo: { type: mongoose.Schema.Types.ObjectId, ref: "Repo" },
+    repos: [{ type: mongoose.Schema.Types.ObjectId, ref: "Repo" }],
     messages: [messageSchema],
   },
   { timestamps: true }
 );
+
+conversationSchema.index({ user: 1, "messages.content": "text" });
 
 const Conversation = mongoose.model("Conversation", conversationSchema);
 export default Conversation;

@@ -11,6 +11,7 @@ import RepositoryPage from "../pages/RepositoryPage";
 import DebuggerPage from "../pages/DebuggerPage";
 import IndexingPage from "../pages/IndexingPage";
 import SettingsPage from "../pages/SettingsPage";
+import HistoryPage from "../pages/HistoryPage";
 
 
 
@@ -74,6 +75,14 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+  {
+  path: "/history",
+  element: (
+    <ProtectedRoute>
+      <HistoryPage />
+    </ProtectedRoute>
+  ),
+},
   
   { path: "/", element: <Navigate to="/dashboard" replace /> },
   { path: "*", element: <Navigate to="/dashboard" replace /> },

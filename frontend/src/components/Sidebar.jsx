@@ -10,6 +10,7 @@ const navItems = [
   { label: "Debugger", path: "/debugger", icon: "⚙" },
   { label: "Indexing", path: "/indexing", icon: "▤" },
   { label: "Settings", path: "/settings", icon: "⚙" },
+  { label: "History", path: "/history", icon: "◷" },
 ];
 
 const Sidebar = () => {

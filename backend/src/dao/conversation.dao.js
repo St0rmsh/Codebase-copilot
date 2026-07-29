@@ -31,3 +31,29 @@ export const findOrCreateMultiRepoConversation = async (userId, repoIds) => {
   }
   return conversation;
 };
+
+
+
+export const findConversationsByUser = async (userId) => {
+  return await Conversation.find({ user: userId })
+    .populate("repo", "name fullName")
+    .populate("repos", "name fullName")
+    .sort({ updatedAt: -1 });
+};
+
+export const searchConversationsByText = async (userId, query) => {
+  return await Conversation.find(
+    { user: userId, $text: { $search: query } },
+    { score: { $meta: "textScore" } }
+  )
+    .populate("repo", "name fullName")
+    .populate("repos", "name fullName")
+    .sort({ score: { $meta: "textScore" } })
+    .limit(20);
+};
+
+export const findConversationByIdForUser = async (conversationId, userId) => {
+  return await Conversation.findOne({ _id: conversationId, user: userId })
+    .populate("repo", "name fullName")
+    .populate("repos", "name fullName");
+};

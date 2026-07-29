@@ -10,6 +10,7 @@ import chunkRoutes from "./routes/chunk.routes.js";
 import multiRepoChatRoutes from "./routes/multiRepoChat.routes.js";
 import indexingRoutes from "./routes/indexing.routes.js";
 import settingsRoutes from "./routes/settings.routes.js";
+import historyRoutes from "./routes/history.routes.js";
 
 
 
@@ -53,5 +54,9 @@ app.use("/api/indexing", indexingRoutes);
 
 
 app.use("/api/settings", settingsRoutes);
+
+
+
+app.use("/api/history", historyRoutes);
 
 export default app

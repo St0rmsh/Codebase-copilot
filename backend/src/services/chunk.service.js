@@ -4,10 +4,14 @@ import { findRepoById } from "../dao/repo.dao.js";
 import { insertChunks, findChunksByRepo, deleteChunksByRepo } from "../dao/chunk.dao.js";
 import { findChunksByRepoAndFile } from "../dao/chunk.dao.js";
 import { chunkFile } from "../utils/astChunker.js";
+import { chunkPythonFile } from "../utils/pythonChunker.js";
+import { chunkCFamilyFile } from "../utils/cFamilyChunker.js";
 
 const AST_EXTENSIONS = new Set([".js", ".jsx", ".ts", ".tsx"]);
+const PYTHON_EXTENSIONS = new Set([".py"]);
+const C_FAMILY_EXTENSIONS = new Set([".c", ".cpp", ".cc", ".h", ".hpp", ".cs", ".java"]);
 const WHOLE_FILE_EXTENSIONS = new Set([".css", ".scss", ".html", ".json", ".md"]);
-const MAX_WHOLE_FILE_SIZE = 40000; // ~40KB — skip huge generated/lock files
+const MAX_WHOLE_FILE_SIZE = 40000;
 
 export const chunkRepo = async (repoId) => {
   const repo = await findRepoById(repoId);
@@ -27,23 +31,30 @@ export const chunkRepo = async (repoId) => {
   await deleteChunksByRepo(repoId);
 
   const astFiles = repo.files.filter((f) => AST_EXTENSIONS.has(f.extension));
+  const pythonFiles = repo.files.filter((f) => PYTHON_EXTENSIONS.has(f.extension));
+  const cFamilyFiles = repo.files.filter((f) => C_FAMILY_EXTENSIONS.has(f.extension));
   const wholeFiles = repo.files.filter(
     (f) => WHOLE_FILE_EXTENSIONS.has(f.extension) && f.size <= MAX_WHOLE_FILE_SIZE
   );
 
   const allChunks = [];
 
-  for (const file of astFiles) {
-    const fullPath = path.join(repo.localPath, file.path);
-    try {
-      const sourceCode = await fs.readFile(fullPath, "utf-8");
-      const fileChunks = chunkFile(sourceCode, file.path);
-      allChunks.push(...fileChunks.map((c) => ({ ...c, repo: repoId })));
-    } catch (err) {
-      console.error(`Skipping ${file.path}:`, err.message);
-      continue;
+  const readAndChunk = async (files, chunkerFn) => {
+    for (const file of files) {
+      const fullPath = path.join(repo.localPath, file.path);
+      try {
+        const sourceCode = await fs.readFile(fullPath, "utf-8");
+        const fileChunks = chunkerFn(sourceCode, file.path);
+        allChunks.push(...fileChunks.map((c) => ({ ...c, repo: repoId })));
+      } catch (err) {
+        console.error(`Skipping ${file.path}:`, err.message);
+      }
     }
-  }
+  };
+
+  await readAndChunk(astFiles, chunkFile);
+  await readAndChunk(pythonFiles, chunkPythonFile);
+  await readAndChunk(cFamilyFiles, chunkCFamilyFile);
 
   for (const file of wholeFiles) {
     const fullPath = path.join(repo.localPath, file.path);
@@ -65,14 +76,13 @@ export const chunkRepo = async (repoId) => {
       });
     } catch (err) {
       console.error(`Skipping ${file.path}:`, err.message);
-      continue;
     }
   }
 
   const savedChunks = await insertChunks(allChunks);
 
   return {
-    filesProcessed: astFiles.length + wholeFiles.length,
+    filesProcessed: astFiles.length + pythonFiles.length + cFamilyFiles.length + wholeFiles.length,
     chunksCreated: savedChunks.length,
   };
 };
