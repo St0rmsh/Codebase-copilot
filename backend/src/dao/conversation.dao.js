@@ -41,14 +41,15 @@ export const findConversationsByUser = async (userId) => {
     .sort({ updatedAt: -1 });
 };
 
+
 export const searchConversationsByText = async (userId, query) => {
-  return await Conversation.find(
-    { user: userId, $text: { $search: query } },
-    { score: { $meta: "textScore" } }
-  )
+  return await Conversation.find({
+    user: userId,
+    "messages.content": { $regex: query, $options: "i" },
+  })
     .populate("repo", "name fullName")
     .populate("repos", "name fullName")
-    .sort({ score: { $meta: "textScore" } })
+    .sort({ updatedAt: -1 })
     .limit(20);
 };
 
