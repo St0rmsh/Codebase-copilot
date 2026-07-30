@@ -1,6 +1,8 @@
 import express from "express";
 import { ingest, getMyRepos, shareRepoHandler } from "../controllers/repo.controller.js";
 import { protect } from "../middlewares/auth.middleware.js";
+import { enableAutoSyncHandler, disableAutoSyncHandler } from "../controllers/webhook.controller.js";
+
 
 const router = express.Router();
 
@@ -15,5 +17,11 @@ router.get("/", protect, getMyRepos);
 
 
 router.post("/:repoId/share", protect, shareRepoHandler);
+
+
+
+
+router.post("/:repoId/auto-sync/enable", protect, enableAutoSyncHandler);
+router.post("/:repoId/auto-sync/disable", protect, disableAutoSyncHandler);
 
 export default router;

@@ -7,6 +7,7 @@ import {
   removeMember,
   leaveTeam,
   deleteTeam,
+  removeMultipleMembers
 } from "../services/team.service.js";
 
 
@@ -108,6 +109,27 @@ export const deleteTeamHandler = async (req, res, next) => {
     const { teamId } = req.params;
     const result = await deleteTeam(teamId, req.user._id);
     res.status(200).json({ success: true, ...result });
+  } catch (error) {
+    if (error.statusCode) res.status(error.statusCode);
+    next(error);
+  }
+};
+
+
+
+
+
+
+export const removeMultipleMembersHandler = async (req, res, next) => {
+  try {
+    const { teamId } = req.params;
+    const { memberIds } = req.body;
+    if (!Array.isArray(memberIds) || memberIds.length === 0) {
+      res.status(400);
+      throw new Error("memberIds array is required");
+    }
+    const team = await removeMultipleMembers(teamId, memberIds, req.user._id);
+    res.status(200).json({ success: true, team });
   } catch (error) {
     if (error.statusCode) res.status(error.statusCode);
     next(error);

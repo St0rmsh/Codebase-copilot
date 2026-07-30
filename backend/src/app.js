@@ -12,13 +12,16 @@ import indexingRoutes from "./routes/indexing.routes.js";
 import settingsRoutes from "./routes/settings.routes.js";
 import historyRoutes from "./routes/history.routes.js";
 import teamRoutes from "./routes/team.routes.js";
+import webhookRoutes from "./routes/webhook.routes.js";
+
 
 
 
 const app = express()
 
+
 app.use(cors({ origin: [config.CORS_ORIGIN], credentials: true }))
-app.use(express.json())
+app.use(express.json({ limit: "10mb", verify: (req, res, buf) => { req.rawBody = buf; } }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }))
 app.use(cookieParser())
 app.use(morgan("dev"))
@@ -63,5 +66,8 @@ app.use("/api/history", historyRoutes);
 
 
 app.use("/api/teams", teamRoutes);
+
+
+app.use("/api/webhooks", webhookRoutes);
 
 export default app

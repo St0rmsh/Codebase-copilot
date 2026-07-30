@@ -44,3 +44,17 @@ export const findReposByUserOrTeams = async (userId, teamIds) => {
     $or: [{ user: userId }, { team: { $in: teamIds } }],
   }).sort({ createdAt: -1 });
 };
+
+
+
+export const saveWebhookInfo = async (repoId, webhookId, webhookSecret) => {
+  return await Repo.findByIdAndUpdate(repoId, { webhookId, webhookSecret }, { returnDocument: "after" });
+};
+
+export const findRepoByIdWithWebhookSecret = async (repoId) => {
+  return await Repo.findById(repoId).select("+webhookSecret");
+};
+
+export const findRepoByGithubRepoId = async (githubRepoId) => {
+  return await Repo.findOne({ githubRepoId: githubRepoId.toString() });
+};

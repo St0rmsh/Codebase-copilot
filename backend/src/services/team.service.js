@@ -103,3 +103,25 @@ export const deleteTeam = async (teamId, userId) => {
   await deleteTeamById(teamId);
   return { message: "Team deleted" };
 };
+
+
+export const removeMultipleMembers = async (teamId, memberIds, requestingUserId) => {
+  const isOwner = await isTeamOwner(teamId, requestingUserId);
+  if (!isOwner) {
+    const error = new Error("Only the team owner can remove members");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  const team = await findTeamById(teamId);
+  const ownerId = team.owner.toString();
+
+  const idsToRemove = memberIds.filter((id) => id !== ownerId); // never allow removing the owner
+
+  let updatedTeam = team;
+  for (const memberId of idsToRemove) {
+    updatedTeam = await removeMemberFromTeam(teamId, memberId);
+  }
+
+  return updatedTeam;
+};

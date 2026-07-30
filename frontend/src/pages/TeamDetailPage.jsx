@@ -5,8 +5,13 @@ import Sidebar from "../components/Sidebar";
 import UserMenu from "../components/UserMenu";
 import InviteMemberForm from "../features/team/components/InviteMemberForm";
 import { useTeamDetail } from "../features/team/hooks/useTeamDetail";
-import { removeMemberRequest, leaveTeamRequest, deleteTeamRequest } from "../features/team/services/teamService";
-import { showToast } from "../app/toastSlice";
+import {
+  removeMemberRequest,
+  removeMultipleMembersRequest,
+  leaveTeamRequest,
+  deleteTeamRequest,
+} from "../features/team/services/teamService";
+import { showToast } from "../App/toastSlice";
 
 const TeamDetailPage = () => {
   const { teamId } = useParams();
@@ -15,6 +20,7 @@ const TeamDetailPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [confirmDeleteTeam, setConfirmDeleteTeam] = useState(false);
+  const [selectedMembers, setSelectedMembers] = useState([]);
 
   if (!team) {
     return (
@@ -29,6 +35,21 @@ const TeamDetailPage = () => {
 
   const ownerId = team.owner?._id || team.owner;
   const isOwner = ownerId === user?.id;
+  const removableMembers = team.members.filter((m) => (m.user._id || m.user) !== ownerId);
+
+  const toggleSelect = (memberId) => {
+    setSelectedMembers((prev) =>
+      prev.includes(memberId) ? prev.filter((id) => id !== memberId) : [...prev, memberId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedMembers.length === removableMembers.length) {
+      setSelectedMembers([]);
+    } else {
+      setSelectedMembers(removableMembers.map((m) => m.user._id || m.user));
+    }
+  };
 
   const handleRemoveMember = async (memberId, memberName) => {
     try {
@@ -37,6 +58,17 @@ const TeamDetailPage = () => {
       refetch();
     } catch (err) {
       dispatch(showToast(err.response?.data?.message || "Failed to remove member.", "error"));
+    }
+  };
+
+  const handleRemoveSelected = async () => {
+    try {
+      await removeMultipleMembersRequest(teamId, selectedMembers);
+      dispatch(showToast(`${selectedMembers.length} member(s) removed.`, "success"));
+      setSelectedMembers([]);
+      refetch();
+    } catch (err) {
+      dispatch(showToast(err.response?.data?.message || "Failed to remove members.", "error"));
     }
   };
 
@@ -67,7 +99,7 @@ const TeamDetailPage = () => {
   return (
     <div className="flex min-h-screen bg-base">
       <Sidebar />
-      <main className="flex-1 px-10 py-8 max-w-8xl">
+      <main className="flex-1 px-10 py-8 max-w-2xl">
         <div className="flex justify-end mb-6">
           <UserMenu />
         </div>
@@ -78,9 +110,30 @@ const TeamDetailPage = () => {
         </p>
 
         <div className="bg-panel border border-border p-6 mb-6">
-          <h3 className="font-mono text-sm tracking-widest2 uppercase text-accentSoft mb-4">
-            Members
-          </h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-mono text-sm tracking-widest2 uppercase text-accentSoft">
+              Members
+            </h3>
+            {isOwner && removableMembers.length > 0 && (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={toggleSelectAll}
+                  className="font-mono text-xs text-textMuted hover:text-white"
+                >
+                  {selectedMembers.length === removableMembers.length ? "Deselect All" : "Select All"}
+                </button>
+                {selectedMembers.length > 0 && (
+                  <button
+                    onClick={handleRemoveSelected}
+                    className="font-mono text-xs text-accent hover:text-white bg-accent/10 hover:bg-accent px-3 py-1 transition"
+                  >
+                    Remove Selected ({selectedMembers.length})
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="space-y-2">
             {team.members.map((m) => {
               const memberId = m.user._id || m.user;
@@ -92,9 +145,17 @@ const TeamDetailPage = () => {
                   key={memberId}
                   className="flex justify-between items-center py-2 border-b border-border last:border-b-0"
                 >
-                  <div>
+                  <div className="flex items-center gap-3">
+                    {isOwner && !isThisOwner && (
+                      <input
+                        type="checkbox"
+                        checked={selectedMembers.includes(memberId)}
+                        onChange={() => toggleSelect(memberId)}
+                        className="accent-accent"
+                      />
+                    )}
                     <span className="font-mono text-sm">{memberName}</span>
-                    <span className="font-mono text-xs text-textMuted uppercase tracking-widest2 ml-3">
+                    <span className="font-mono text-xs text-textMuted uppercase tracking-widest2">
                       {m.role}
                     </span>
                   </div>

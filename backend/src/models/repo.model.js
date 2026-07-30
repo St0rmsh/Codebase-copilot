@@ -37,6 +37,8 @@ const repoSchema = new mongoose.Schema(
     fileCount: { type: Number, default: 0 },
     dependencyGraph: [graphEdgeSchema],
     errorMessage: { type: String, default: null },
+    webhookId: { type: Number, default: null },
+    webhookSecret: { type: String, default: null, select: false },
   },
   { timestamps: true }
 );

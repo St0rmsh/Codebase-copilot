@@ -46,3 +46,10 @@ export const deleteTeamRequest = async (teamId) => {
   const res = await axiosInstance.delete(`/teams/${teamId}`);
   return res.data;
 };
+
+
+
+export const removeMultipleMembersRequest = async (teamId, memberIds) => {
+  const res = await axiosInstance.post(`/teams/${teamId}/members/remove-bulk`, { memberIds });
+  return res.data;
+};
