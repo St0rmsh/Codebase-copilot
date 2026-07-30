@@ -11,6 +11,7 @@ import multiRepoChatRoutes from "./routes/multiRepoChat.routes.js";
 import indexingRoutes from "./routes/indexing.routes.js";
 import settingsRoutes from "./routes/settings.routes.js";
 import historyRoutes from "./routes/history.routes.js";
+import teamRoutes from "./routes/team.routes.js";
 
 
 
@@ -58,5 +59,9 @@ app.use("/api/settings", settingsRoutes);
 
 
 app.use("/api/history", historyRoutes);
+
+
+
+app.use("/api/teams", teamRoutes);
 
 export default app

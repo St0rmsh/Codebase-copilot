@@ -5,6 +5,7 @@ const initialState = {
   loading: false,
   streaming: false,
   error: null,
+  conversationId: null,
 };
 
 const SEND_START = "chat/SEND_START";
@@ -13,6 +14,7 @@ const SEND_FAIL = "chat/SEND_FAIL";
 const RESET_CHAT = "chat/RESET";
 
 const STREAM_START = "chat/STREAM_START";
+const STREAM_CONVERSATION_ID = "chat/STREAM_CONVERSATION_ID";
 const STREAM_CITATIONS = "chat/STREAM_CITATIONS";
 const STREAM_TOKEN = "chat/STREAM_TOKEN";
 const STREAM_DONE = "chat/STREAM_DONE";
@@ -47,9 +49,11 @@ const chatReducer = (state = initialState, action) => {
         messages: [
           ...state.messages,
           { role: "user", content: action.payload },
-          { role: "assistant", content: "", citedChunks: [] }, // placeholder, fills in as tokens arrive
+          { role: "assistant", content: "", citedChunks: [] },
         ],
       };
+    case STREAM_CONVERSATION_ID:
+      return { ...state, conversationId: action.payload };
     case STREAM_CITATIONS: {
       const messages = [...state.messages];
       messages[messages.length - 1] = {
@@ -95,6 +99,7 @@ export const askQuestionStreaming = (repoId, question) => async (dispatch) => {
   dispatch({ type: STREAM_START, payload: question });
 
   await streamChatMessage(repoId, question, {
+    onConversationId: (conversationId) => dispatch({ type: STREAM_CONVERSATION_ID, payload: conversationId }),
     onCitations: (citedChunks) => dispatch({ type: STREAM_CITATIONS, payload: citedChunks }),
     onToken: (content) => dispatch({ type: STREAM_TOKEN, payload: content }),
     onDone: () => dispatch({ type: STREAM_DONE }),

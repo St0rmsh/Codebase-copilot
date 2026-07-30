@@ -55,3 +55,42 @@ export const getConversationDetail = async (conversationId, userId) => {
   }
   return conversation;
 };
+
+export const exportConversation = async (conversationId, userId) => {
+  const conversation = await findConversationByIdForUser(conversationId, userId);
+  if (!conversation) throw new Error("Conversation not found");
+
+  const markdown = convertToMarkdown(conversation);
+
+  return {
+    content: markdown,
+    filename: `conversation-${conversation._id}.md`,
+    contentType: "text/markdown",
+  };
+};
+
+const convertToMarkdown = (conversation) => {
+  let md = `# Chat Conversation: ${conversation.repo?.fullName || "Multi-repo"}\n\n`;
+
+  if (conversation.repos?.length) {
+    md += `**Repositories:**\n` +
+          conversation.repos.map(r => `- ${r.fullName}`).join("\n") + "\n\n";
+  }
+
+  md += `**Date:** ${new Date(conversation.updatedAt).toLocaleString()}\n\n`;
+  md += `---` + "\n\n";
+
+  conversation.messages.forEach((msg) => {
+    const role = msg.role === "assistant" ? "🤖 AI" : "👤 You";
+    md += `**${role}**\n\n`;
+
+    if (msg.citedChunks && msg.citedChunks.length > 0) {
+      md += "_" + msg.citedChunks.map(c => `${c.filePath}:${c.startLine}`).join(", ") + "_" + "\n\n";
+    }
+
+    md += msg.content + "\n\n";
+    md += `---` + "\n\n";
+  });
+
+  return md;
+};

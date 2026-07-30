@@ -33,3 +33,14 @@ export const findRepoWithStatus = async (repoId) => {
 export const deleteRepoById = async (repoId) => {
   return await Repo.findByIdAndDelete(repoId);
 };
+
+
+export const updateRepoTeam = async (repoId, teamId) => {
+  return await Repo.findByIdAndUpdate(repoId, { team: teamId }, { returnDocument: "after" });
+};
+
+export const findReposByUserOrTeams = async (userId, teamIds) => {
+  return await Repo.find({
+    $or: [{ user: userId }, { team: { $in: teamIds } }],
+  }).sort({ createdAt: -1 });
+};

@@ -21,7 +21,7 @@ export const askQuestionStream = async (userId, repoId, question) => {
     await addMessage(conversation._id, { role: "assistant", content: fullAnswer, citedChunks });
   };
 
-  return { tokenStream, citedChunks, persistMessages };
+  return { tokenStream, citedChunks, persistMessages, conversationId: conversation._id };
 };
 
 export const askMultiRepoQuestionStream = async (userId, repoIds, question) => {

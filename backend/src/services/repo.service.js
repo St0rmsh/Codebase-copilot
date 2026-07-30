@@ -1,11 +1,12 @@
 import simpleGit from "simple-git";
 import fs from "fs/promises";
 import path from "path";
-import { createRepo, updateRepoStatus, findReposByUser,deleteRepoById,findRepoById } from "../dao/repo.dao.js";
+import { createRepo, updateRepoStatus, findReposByUser,deleteRepoById,findRepoById, findReposByUserOrTeams } from "../dao/repo.dao.js";
 import { findUserByIdWithGithubToken } from "../dao/user.dao.js";
 import { walkDirectory } from "../utils/fileWalker.js";
 import { deleteChunksByRepo } from "../dao/chunk.dao.js"
-
+import { isTeamMember } from "../dao/team.dao.js";
+import { updateRepoTeam } from "../dao/repo.dao.js";
 
 
 
@@ -91,3 +92,27 @@ export const deleteRepoAndData = async (repoId, userId) => {
   return { message: "Repository and all associated data deleted" };
 };
 
+
+
+
+
+
+export const shareRepoWithTeam = async (repoId, teamId, userId) => {
+  const repo = await findRepoById(repoId);
+  if (!repo || repo.user.toString() !== userId.toString()) {
+    const error = new Error("Repo not found");
+    error.statusCode = 404;
+    throw error;
+  }
+  const isMember = await isTeamMember(teamId, userId);
+  if (!isMember) {
+    const error = new Error("You are not a member of this team");
+    error.statusCode = 403;
+    throw error;
+  }
+  return await updateRepoTeam(repoId, teamId);
+};
+
+export const getReposForUserAndTeams = async (userId, teamIds) => {
+  return await findReposByUserOrTeams(userId, teamIds);
+};

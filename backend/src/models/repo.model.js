@@ -32,6 +32,7 @@ const repoSchema = new mongoose.Schema(
       enum: ["pending", "cloning", "indexed", "failed"],
       default: "pending",
     },
+    team: { type: mongoose.Schema.Types.ObjectId, ref: "Team", default: null },
     files: [fileSchema],
     fileCount: { type: Number, default: 0 },
     dependencyGraph: [graphEdgeSchema],

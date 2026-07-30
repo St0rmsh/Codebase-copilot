@@ -14,6 +14,9 @@ import { useRepoChunks } from "../features/repo/hooks/useRepoChunks";
 import { useDispatch } from "react-redux";
 import { rebuildRepo } from "../features/repo/services/repoService";
 import { showToast } from "../App/toastSlice";
+import ExportChatButton from "../features/chat/components/ExportChatButton";
+
+
 
 const TABS = [
   { id: "code", label: "Code" },
@@ -24,7 +27,7 @@ const TABS = [
 const RepoChatPage = () => {
   const { repoId } = useParams();
   const { repo } = useRepoById(repoId);
-  const { messages, streaming, sendStreaming } = useChat(repoId);
+  const { messages, streaming, sendStreaming, conversationId } = useChat(repoId);
   const { loadChunks, findChunksByFile } = useRepoChunks(repoId);
   const [activeChunk, setActiveChunk] = useState(null);
   const [rightPanel, setRightPanel] = useState("code");
@@ -83,6 +86,7 @@ const RepoChatPage = () => {
            <button onClick={() => setDocModalOpen(true)} className="hover:text-white">
               📄 Onboarding Doc
             </button>
+            <ExportChatButton conversationId={conversationId} repoName={repo?.name} />
             <button onClick={handleDeploy} disabled={rebuilding} className="bg-accent text-white px-4 py-2 tracking-widest2 disabled:opacity-50">
               {rebuilding ? "Deploying..." : "Deploy"}
             </button>

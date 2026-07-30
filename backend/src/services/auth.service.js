@@ -11,6 +11,9 @@ import {
 import { sendOtpEmail } from "../utils/mailer.js";
 import { updateUserProfile, deleteUserAccount, findUserByIdWithGithubToken } from "../dao/user.dao.js";
 import bcrypt from "bcrypt";
+import { acceptPendingInvites } from "./team.service.js";
+import User from "../models/user.model.js";
+
 
 
 const generateToken = (userId) => {
@@ -67,6 +70,7 @@ export const verifyOtp = async ({ userId, otp }) => {
   }
 
   const verifiedUser = await markUserVerified(user._id);
+  await acceptPendingInvites(verifiedUser.email, verifiedUser._id);
   const token = generateToken(verifiedUser._id);
 
   return {
@@ -155,7 +159,6 @@ export const updateProfile = async (userId, { name }) => {
 };
 
 export const changePassword = async (userId, { currentPassword, newPassword }) => {
-  const user = await findUserById(userId);
   const fullUser = await User.findById(userId).select("+password");
 
   if (!fullUser.password) {
@@ -172,7 +175,7 @@ export const changePassword = async (userId, { currentPassword, newPassword }) =
   }
 
   fullUser.password = newPassword;
-  await fullUser.save(); // triggers pre-save hash hook
+  await fullUser.save();
 
   return { message: "Password updated successfully" };
 };

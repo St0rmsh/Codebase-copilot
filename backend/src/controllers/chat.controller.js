@@ -38,13 +38,13 @@ export const chatStream = async (req, res) => {
   };
 
   try {
-    const { tokenStream, citedChunks, persistMessages } = await askQuestionStream(
+    const { tokenStream, citedChunks, persistMessages, conversationId } = await askQuestionStream(
       req.user._id,
       repoId,
       question
     );
 
-    // send citations immediately — frontend can render chips before text finishes
+    send({ type: "conversation", conversationId });
     send({ type: "citations", citedChunks });
 
     let fullAnswer = "";

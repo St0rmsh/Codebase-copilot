@@ -14,6 +14,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+
 const buildOtpEmailHtml = (otp) => `
 <!DOCTYPE html>
 <html>
@@ -120,5 +121,42 @@ export const sendOtpEmail = async (toEmail, otp) => {
     to: toEmail,
     subject: `${otp} is your Codebase Copilot verification code`,
     html: buildOtpEmailHtml(otp),
+  });
+};
+
+
+
+
+const buildTeamInviteEmailHtml = (teamName) => `
+<!DOCTYPE html>
+<html>
+<body style="margin:0; padding:0; background-color:#0A0A0A; font-family: 'Courier New', Courier, monospace;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0A0A0A; padding:48px 16px;">
+    <tr><td align="center">
+      <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px; width:100%;">
+        <tr><td align="center" style="padding-bottom:32px;">
+          <span style="font-size:22px; font-weight:bold; letter-spacing:3px; color:#F2A79D; text-transform:uppercase;">Codebase Copilot</span>
+        </td></tr>
+        <tr><td style="background-color:#141414; border:1px solid #262626; padding:28px 32px;">
+          <p style="color:#CFCFCF; font-size:14px; line-height:22px;">
+            You've been invited to join the <strong style="color:#E8302A;">${teamName}</strong> workspace on Codebase Copilot.
+          </p>
+          <p style="color:#8A8A8A; font-size:12px; margin-top:16px;">
+            Log in or create an account with this email address to automatically join the team.
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
+`;
+
+export const sendTeamInviteEmail = async (toEmail, teamName) => {
+  await transporter.sendMail({
+    from: `"Codebase Copilot" <${config.SMTP_EMAIL}>`,
+    to: toEmail,
+    subject: `You've been invited to join ${teamName}`,
+    html: buildTeamInviteEmailHtml(teamName),
   });
 };

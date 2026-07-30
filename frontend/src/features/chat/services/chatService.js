@@ -7,7 +7,7 @@ export const sendChatMessage = async (repoId, question) => {
 
 // Streaming uses raw fetch since it needs to read the response body incrementally
 export const streamChatMessage = async (repoId, question, callbacks) => {
-  const { onCitations, onToken, onDone, onError } = callbacks;
+  const { onConversationId, onCitations, onToken, onDone, onError } = callbacks;
 
   const response = await fetch(`/api/repos/${repoId}/chat/stream`, {
     method: "POST",
@@ -30,10 +30,8 @@ export const streamChatMessage = async (repoId, question, callbacks) => {
     if (done) break;
 
     buffer += decoder.decode(value, { stream: true });
-
-    // SSE messages are separated by double newlines
     const parts = buffer.split("\n\n");
-    buffer = parts.pop(); // keep the last (possibly incomplete) chunk in buffer
+    buffer = parts.pop();
 
     for (const part of parts) {
       if (!part.startsWith("data:")) continue;
@@ -42,13 +40,16 @@ export const streamChatMessage = async (repoId, question, callbacks) => {
 
       try {
         const payload = JSON.parse(jsonStr);
-        if (payload.type === "citations") onCitations(payload.citedChunks);
+        if (payload.type === "conversation") onConversationId?.(payload.conversationId);
+        else if (payload.type === "citations") onCitations(payload.citedChunks);
         else if (payload.type === "token") onToken(payload.content);
         else if (payload.type === "done") onDone();
         else if (payload.type === "error") onError(payload.message);
       } catch {
-        // ignore malformed partial JSON, will complete on next chunk
+        // wait for more data
       }
     }
   }
 };
+
+
