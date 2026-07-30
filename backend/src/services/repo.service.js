@@ -74,23 +74,23 @@ export const getUserRepos = async (userId) => {
 
 
 
-export const deleteRepoAndData = async (repoId, userId) => {
-  const repo = await findRepoById(repoId);
-  if (!repo || repo.user.toString() !== userId.toString()) {
-    const error = new Error("Repo not found");
-    error.statusCode = 404;
-    throw error;
-  }
+// export const deleteRepoAndData = async (repoId, userId) => {
+//   const repo = await findRepoById(repoId);
+//   if (!repo || repo.user.toString() !== userId.toString()) {
+//     const error = new Error("Repo not found");
+//     error.statusCode = 404;
+//     throw error;
+//   }
 
-  await deleteChunksByRepo(repoId);
-  await deleteRepoById(repoId);
+//   await deleteChunksByRepo(repoId);
+//   await deleteRepoById(repoId);
 
-  if (repo.localPath) {
-    await fs.rm(repo.localPath, { recursive: true, force: true }).catch(() => {});
-  }
+//   if (repo.localPath) {
+//     await fs.rm(repo.localPath, { recursive: true, force: true }).catch(() => {});
+//   }
 
-  return { message: "Repository and all associated data deleted" };
-};
+//   return { message: "Repository and all associated data deleted" };
+// };
 
 
 
@@ -115,4 +115,27 @@ export const shareRepoWithTeam = async (repoId, teamId, userId) => {
 
 export const getReposForUserAndTeams = async (userId, teamIds) => {
   return await findReposByUserOrTeams(userId, teamIds);
+};
+
+
+
+
+
+
+export const deleteRepoAndData = async (repoId, userId) => {
+  const repo = await findRepoById(repoId);
+  if (!repo || repo.user.toString() !== userId.toString()) {
+    const error = new Error("Only the repository owner can delete it");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  await deleteChunksByRepo(repoId);
+  await deleteRepoById(repoId);
+
+  if (repo.localPath) {
+    await fs.rm(repo.localPath, { recursive: true, force: true }).catch(() => {});
+  }
+
+  return { message: "Repository and all associated data deleted" };
 };

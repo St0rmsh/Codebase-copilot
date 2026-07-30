@@ -1,15 +1,37 @@
 import { findOrCreateConversation, findOrCreateMultiRepoConversation, addMessage } from "../dao/conversation.dao.js";
 import { runAgent, runAgentStream, runMultiRepoAgentStream } from "./agent.service.js";
 import { findRepoById } from "../dao/repo.dao.js";
+import { isTeamMember } from "../dao/team.dao.js";
+
+
 
 export const askQuestion = async (userId, repoId, question) => {
+
+  const repo = await findRepoById(repoId);
+
+  if (!repo) {
+    const error = new Error("Repo not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const isOwner = repo.user.toString() === userId.toString();
+  const isMember = repo.team ? await isTeamMember(repo.team, userId) : false;
+
+  if (!isOwner && !isMember) {
+    const error = new Error("You don't have access to this repository");
+    error.statusCode = 403;
+    throw error;
+  }
+
+
   const conversation = await findOrCreateConversation(userId, repoId);
   const { answer, citedChunks } = await runAgent(repoId, conversation.messages, question);
 
   await addMessage(conversation._id, { role: "user", content: question });
   await addMessage(conversation._id, { role: "assistant", content: answer, citedChunks });
 
-  return { answer, citedChunks };
+  return { answer, citedChunks, persistMessages, conversationId: conversation._id };
 };
 
 export const askQuestionStream = async (userId, repoId, question) => {

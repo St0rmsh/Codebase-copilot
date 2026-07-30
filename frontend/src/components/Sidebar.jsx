@@ -11,6 +11,7 @@ const navItems = [
   { label: "Indexing", path: "/indexing", icon: "▤" },
   { label: "Settings", path: "/settings", icon: "⚙" },
   { label: "History", path: "/history", icon: "◷" },
+  { label: "Teams", path: "/teams", icon: "◈" },
 ];
 
 const Sidebar = () => {

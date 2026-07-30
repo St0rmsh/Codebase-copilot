@@ -4,6 +4,7 @@ import authReducer from "../features/Auth/state/authSlice";
 import githubReducer from "../features/Github/state/githubSlice";
 import repoReducer from "../features/repo/state/repoSlice";
 import chatReducer from "../features/chat/state/chatSlice";
+import teamReducer from "../features/team/state/teamSlice";
 import toastReducer from "./toastSlice";
 
 const rootReducer = combineReducers({
@@ -12,6 +13,7 @@ const rootReducer = combineReducers({
   repo: repoReducer,
   chat: chatReducer,
   toast: toastReducer,
+  team: teamReducer,
 });
 
 const composeEnhancers = (typeof window !== "undefined" && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) || compose;

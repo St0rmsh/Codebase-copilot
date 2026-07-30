@@ -9,6 +9,8 @@ import { deleteChunksByRepoAndFiles } from "../dao/chunk.dao.js";
 import { chunkRepo } from "./chunk.service.js";
 import { embedRepoChunks } from "./embedding.service.js";
 import { generateDependencyGraph } from "./graph.service.js";
+import { isTeamMember } from "../dao/team.dao.js";
+
 
 const TMP_DIR = path.resolve("tmp", "repos");
 
@@ -17,6 +19,15 @@ export const syncRepo = async (repoId, userId) => {
   if (!repo) {
     const error = new Error("Repo not found");
     error.statusCode = 404;
+    throw error;
+  }
+
+  const isOwner = repo.user.toString() === userId.toString();
+  const isMember = repo.team ? await isTeamMember(repo.team, userId) : false;
+
+  if (!isOwner && !isMember) {
+    const error = new Error("You don't have access to sync this repository");
+    error.statusCode = 403;
     throw error;
   }
 
@@ -78,3 +89,7 @@ export const syncRepo = async (repoId, userId) => {
     throw error;
   }
 };
+
+
+
+

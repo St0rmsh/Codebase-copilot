@@ -4,7 +4,12 @@ import {
   getTeamDetail,
   inviteByEmail,
   joinViaInviteCode,
+  removeMember,
+  leaveTeam,
+  deleteTeam,
 } from "../services/team.service.js";
+
+
 
 export const createTeamHandler = async (req, res, next) => {
   try {
@@ -66,6 +71,43 @@ export const joinByCodeHandler = async (req, res, next) => {
     }
     const team = await joinViaInviteCode(inviteCode, req.user._id);
     res.status(200).json({ success: true, team });
+  } catch (error) {
+    if (error.statusCode) res.status(error.statusCode);
+    next(error);
+  }
+};
+
+
+
+
+
+export const removeMemberHandler = async (req, res, next) => {
+  try {
+    const { teamId, memberId } = req.params;
+    const team = await removeMember(teamId, memberId, req.user._id);
+    res.status(200).json({ success: true, team });
+  } catch (error) {
+    if (error.statusCode) res.status(error.statusCode);
+    next(error);
+  }
+};
+
+export const leaveTeamHandler = async (req, res, next) => {
+  try {
+    const { teamId } = req.params;
+    await leaveTeam(teamId, req.user._id);
+    res.status(200).json({ success: true, message: "Left team" });
+  } catch (error) {
+    if (error.statusCode) res.status(error.statusCode);
+    next(error);
+  }
+};
+
+export const deleteTeamHandler = async (req, res, next) => {
+  try {
+    const { teamId } = req.params;
+    const result = await deleteTeam(teamId, req.user._id);
+    res.status(200).json({ success: true, ...result });
   } catch (error) {
     if (error.statusCode) res.status(error.statusCode);
     next(error);

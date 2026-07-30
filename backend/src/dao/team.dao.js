@@ -40,3 +40,16 @@ export const isTeamOwner = async (teamId, userId) => {
   const team = await Team.findOne({ _id: teamId, owner: userId });
   return !!team;
 };
+
+
+export const removeMemberFromTeam = async (teamId, userIdToRemove) => {
+  return await Team.findByIdAndUpdate(
+    teamId,
+    { $pull: { members: { user: userIdToRemove } } },
+    { returnDocument: "after" }
+  );
+};
+
+export const deleteTeamById = async (teamId) => {
+  return await Team.findByIdAndDelete(teamId);
+};

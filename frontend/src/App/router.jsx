@@ -12,6 +12,8 @@ import DebuggerPage from "../pages/DebuggerPage";
 import IndexingPage from "../pages/IndexingPage";
 import SettingsPage from "../pages/SettingsPage";
 import HistoryPage from "../pages/HistoryPage";
+import TeamsPage from "../pages/TeamsPage";
+import TeamDetailPage from "../pages/TeamDetailPage";
 
 
 
@@ -83,7 +85,22 @@ export const router = createBrowserRouter([
     </ProtectedRoute>
   ),
 },
-  
+{ 
+  path: "/teams", 
+  element: (
+    <ProtectedRoute>
+      <TeamsPage />
+    </ProtectedRoute>
+  ) 
+},
+{ 
+  path: "/teams/:teamId", 
+  element: (
+    <ProtectedRoute>
+      <TeamDetailPage />
+    </ProtectedRoute>
+  ) 
+},  
   { path: "/", element: <Navigate to="/dashboard" replace /> },
   { path: "*", element: <Navigate to="/dashboard" replace /> },
 ]);
