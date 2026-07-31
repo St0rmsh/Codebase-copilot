@@ -16,7 +16,6 @@ export const getRepoDebugInfo = async (repoId) => {
   const embeddedChunks = await countEmbeddedChunksByRepo(repoId);
   const allChunks = await findChunksByRepo(repoId);
 
-  // Files that produced zero chunks — likely candidates for silent parse failures
   const chunkedFilePaths = new Set(allChunks.map((c) => c.filePath));
   const chunkableExt = new Set([".js", ".jsx", ".ts", ".tsx"]);
   const unchunkedFiles = (repo.files || [])
@@ -34,6 +33,7 @@ export const getRepoDebugInfo = async (repoId) => {
     embeddedChunks,
     unembeddedChunks: totalChunks - embeddedChunks,
     unchunkedFiles,
+    webhookId: repo.webhookId || null,
   };
 };
 

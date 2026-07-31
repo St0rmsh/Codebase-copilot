@@ -85,3 +85,15 @@ export const syncRepo = async (repoId) => {
   const res = await axiosInstance.post(`/repos/${repoId}/sync`);
   return res.data;
 };
+
+
+
+export const enableAutoSync = async (repoId) => {
+  const res = await axiosInstance.post(`/repos/${repoId}/auto-sync/enable`);
+  return res.data;
+};
+
+export const disableAutoSync = async (repoId) => {
+  const res = await axiosInstance.post(`/repos/${repoId}/auto-sync/disable`);
+  return res.data;
+};

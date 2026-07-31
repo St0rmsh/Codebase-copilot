@@ -6,13 +6,14 @@ import {
   rerunRepoEmbedding,
   rerunRepoGraph,
 } from "../services/repoService";
-import { showToast } from "../../../App/toastSlice";
+import { showToast } from "../../../app/toastSlice";
 import Button from "../../../components/Button";
+import AutoSyncToggle from "./AutoSyncToggle";
 
 const RepoDebugPanel = ({ repoId }) => {
   const [info, setInfo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [running, setRunning] = useState(null); // "chunk" | "embed" | "graph" | null
+  const [running, setRunning] = useState(null);
   const dispatch = useDispatch();
 
   const load = useCallback(async () => {
@@ -94,13 +95,20 @@ const RepoDebugPanel = ({ repoId }) => {
           </p>
           <div className="bg-panel border border-border max-h-48 overflow-y-auto">
             {info.unchunkedFiles.map((path) => (
-              <div key={path} className="font-mono text-xs text-textMuted px-3 py-2 border-b border-border last:border-b-0">
+              <div
+                key={path}
+                className="font-mono text-xs text-textMuted px-3 py-2 border-b border-border last:border-b-0"
+              >
                 {path}
               </div>
             ))}
           </div>
         </div>
       )}
+
+      <div className="bg-panel border border-border p-4 mb-8">
+        <AutoSyncToggle repoId={repoId} initialEnabled={!!info.webhookId} />
+      </div>
 
       <div className="flex flex-col gap-3">
         <p className="font-mono text-xs text-textMuted uppercase tracking-widest2 mb-1">Manual Re-run</p>
