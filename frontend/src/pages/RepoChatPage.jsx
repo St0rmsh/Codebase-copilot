@@ -16,6 +16,7 @@ import { rebuildRepo } from "../features/repo/services/repoService";
 import { showToast } from "../App/toastSlice";
 import ExportChatButton from "../features/chat/components/ExportChatButton";
 import PrReviewPanel from "../features/repo/components/PrReviewPanel";
+import TechStackPanel from "../features/repo/components/TechStackPanel";
 
 
 
@@ -25,6 +26,8 @@ const TABS = [
   { id: "graph", label: "Dependency Graph" },
   { id: "trace", label: "Trace Symbol" },
   { id: "pulls", label: "Pull Requests" },
+    { id: "stack", label: "Tech Stack" },
+
 ];
 
 const RepoChatPage = () => {
@@ -145,6 +148,7 @@ const RepoChatPage = () => {
             )}
             {rightPanel === "trace" && <TraceSymbolPanel repoId={repoId} />}
             {rightPanel === "pulls" && <PrReviewPanel repoId={repoId} />}
+            {rightPanel === "stack" && <TechStackPanel repo={repo} />}
           </div>
         </div>
       </div>

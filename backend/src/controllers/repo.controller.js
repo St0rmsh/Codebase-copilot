@@ -1,7 +1,7 @@
 import { ingestRepo, getUserRepos } from "../services/repo.service.js";
 import { getMyTeams } from "../services/team.service.js";
 import { getReposForUserAndTeams } from "../services/repo.service.js";
-import { shareRepoWithTeam } from "../services/repo.service.js";
+import { shareRepoWithTeam, getRepoWithAccessCheck } from "../services/repo.service.js";
 
 
 export const ingest = async (req, res, next) => {
@@ -49,6 +49,22 @@ export const shareRepoHandler = async (req, res, next) => {
     const { repoId } = req.params;
     const { teamId } = req.body;
     const repo = await shareRepoWithTeam(repoId, teamId, req.user._id);
+    res.status(200).json({ success: true, repo });
+  } catch (error) {
+    if (error.statusCode) res.status(error.statusCode);
+    next(error);
+  }
+};
+
+
+
+
+
+
+export const getRepoByIdHandler = async (req, res, next) => {
+  try {
+    const { repoId } = req.params;
+    const repo = await getRepoWithAccessCheck(repoId, req.user._id);
     res.status(200).json({ success: true, repo });
   } catch (error) {
     if (error.statusCode) res.status(error.statusCode);

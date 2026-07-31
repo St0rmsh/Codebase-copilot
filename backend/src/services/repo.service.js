@@ -169,3 +169,28 @@ export const deleteRepoAndData = async (repoId, userId) => {
 
   return { message: "Repository and all associated data deleted" };
 };
+
+
+
+
+
+export const getRepoWithAccessCheck = async (repoId, userId) => {
+  const repo = await findRepoById(repoId);
+  if (!repo) {
+    const error = new Error("Repo not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const isOwner = repo.user.toString() === userId.toString();
+  const isMember = repo.team ? await isTeamMember(repo.team, userId) : false;
+  const isPublic = repo.visibility === "public";
+
+  if (!isOwner && !isMember && !isPublic) {
+    const error = new Error("You don't have access to this repository");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  return repo;
+};
