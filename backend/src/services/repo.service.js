@@ -122,10 +122,40 @@ export const getReposForUserAndTeams = async (userId, teamIds) => {
 
 
 
+// export const deleteRepoAndData = async (repoId, userId) => {
+//   const repo = await findRepoById(repoId);
+//   if (!repo || repo.user.toString() !== userId.toString()) {
+//     const error = new Error("Only the repository owner can delete it");
+//     error.statusCode = 403;
+//     throw error;
+//   }
+
+//   await deleteChunksByRepo(repoId);
+//   await deleteRepoById(repoId);
+
+//   if (repo.localPath) {
+//     await fs.rm(repo.localPath, { recursive: true, force: true }).catch(() => {});
+//   }
+
+//   return { message: "Repository and all associated data deleted" };
+// };
+
+
+
 export const deleteRepoAndData = async (repoId, userId) => {
   const repo = await findRepoById(repoId);
-  if (!repo || repo.user.toString() !== userId.toString()) {
-    const error = new Error("Only the repository owner can delete it");
+  if (!repo) {
+    const error = new Error("Repo not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const isOwner = repo.visibility === "public"
+    ? repo.addedBy?.toString() === userId.toString()
+    : repo.user.toString() === userId.toString();
+
+  if (!isOwner) {
+    const error = new Error("Only the person who added this repository can delete it");
     error.statusCode = 403;
     throw error;
   }

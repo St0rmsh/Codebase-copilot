@@ -13,6 +13,7 @@ import settingsRoutes from "./routes/settings.routes.js";
 import historyRoutes from "./routes/history.routes.js";
 import teamRoutes from "./routes/team.routes.js";
 import webhookRoutes from "./routes/webhook.routes.js";
+import publicExploreRoutes from "./routes/publicExplore.routes.js";
 
 
 
@@ -69,5 +70,9 @@ app.use("/api/teams", teamRoutes);
 
 
 app.use("/api/webhooks", webhookRoutes);
+
+
+
+app.use("/api/explore", publicExploreRoutes);
 
 export default app

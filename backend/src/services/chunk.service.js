@@ -7,10 +7,10 @@ import { chunkFile } from "../utils/astChunker.js";
 import { chunkPythonFile } from "../utils/pythonChunker.js";
 import { chunkCFamilyFile } from "../utils/cFamilyChunker.js";
 
-const AST_EXTENSIONS = new Set([".js", ".jsx", ".ts", ".tsx"]);
-const PYTHON_EXTENSIONS = new Set([".py"]);
-const C_FAMILY_EXTENSIONS = new Set([".c", ".cpp", ".cc", ".h", ".hpp", ".cs", ".java"]);
-const WHOLE_FILE_EXTENSIONS = new Set([".css", ".scss", ".html", ".json", ".md"]);
+const AST_EXTENSIONS = new Set([".js", ".jsx", ".ts", ".tsx", ".vue", ".svelte", ".ex", ".exs", ".mjs",".cjs"]);
+const PYTHON_EXTENSIONS = new Set([".py", ".pyw", ".pyi"]);
+const C_FAMILY_EXTENSIONS = new Set([".c", ".cpp", ".cc", ".h", ".hpp", ".cs", ".java" ]);
+const WHOLE_FILE_EXTENSIONS = new Set([".css", ".scss", ".html", ".json", ".md",".ejs",".graphql",".gql","txt", "htm", "scss", "sass",".conf",".cfg",]);
 const MAX_WHOLE_FILE_SIZE = 40000;
 
 export const chunkRepo = async (repoId) => {

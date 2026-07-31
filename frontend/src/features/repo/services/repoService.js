@@ -97,3 +97,15 @@ export const disableAutoSync = async (repoId) => {
   const res = await axiosInstance.post(`/repos/${repoId}/auto-sync/disable`);
   return res.data;
 };
+
+
+
+export const fetchOpenPullRequests = async (repoId) => {
+  const res = await axiosInstance.get(`/repos/${repoId}/pulls`);
+  return res.data;
+};
+
+export const requestPrReview = async (repoId, prNumber) => {
+  const res = await axiosInstance.post(`/repos/${repoId}/pulls/review`, { prNumber });
+  return res.data;
+};

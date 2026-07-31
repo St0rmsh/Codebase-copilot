@@ -12,6 +12,7 @@ const navItems = [
   { label: "Settings", path: "/settings", icon: "⚙" },
   { label: "History", path: "/history", icon: "◷" },
   { label: "Teams", path: "/teams", icon: "◈" },
+  { label: "Explore", path: "/explore", icon: "🌐" }
 ];
 
 const Sidebar = () => {

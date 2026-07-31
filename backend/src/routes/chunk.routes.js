@@ -9,6 +9,7 @@ import { getOnboardingDoc } from "../controllers/onboarding.controller.js";
 import { trace } from "../controllers/trace.controller.js";
 import { getDebugInfo, rerunChunkingHandler, rerunEmbeddingHandler, rerunGraphHandler } from "../controllers/debug.controller.js";
 import { syncRepoHandler } from "../controllers/sync.controller.js";
+import { listPrs, reviewPr } from "../controllers/prReview.controller.js";
 
 
 const router = express.Router();
@@ -105,6 +106,19 @@ router.post("/:repoId/debug/rerun-graph", protect, rerunGraphHandler);
 // @route POST /api/chunks/:repoId/sync
 // @access Private
 router.post("/:repoId/sync", protect, syncRepoHandler);
+
+
+
+
+// @desc list prs
+// @route GET /api/chunks/:repoId/pulls
+// @access Private
+router.get("/:repoId/pulls", protect, listPrs);
+
+// @desc review pr
+// @route POST /api/chunks/:repoId/pulls/review
+// @access Private
+router.post("/:repoId/pulls/review", protect, reviewPr);
 
 
 export default router;

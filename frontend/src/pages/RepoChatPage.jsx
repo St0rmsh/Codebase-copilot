@@ -15,6 +15,8 @@ import { useDispatch } from "react-redux";
 import { rebuildRepo } from "../features/repo/services/repoService";
 import { showToast } from "../App/toastSlice";
 import ExportChatButton from "../features/chat/components/ExportChatButton";
+import PrReviewPanel from "../features/repo/components/PrReviewPanel";
+
 
 
 
@@ -22,6 +24,7 @@ const TABS = [
   { id: "code", label: "Code" },
   { id: "graph", label: "Dependency Graph" },
   { id: "trace", label: "Trace Symbol" },
+  { id: "pulls", label: "Pull Requests" },
 ];
 
 const RepoChatPage = () => {
@@ -141,6 +144,7 @@ const RepoChatPage = () => {
               <DependencyGraphView repoId={repoId} onNodeClick={handleGraphNodeClick} />
             )}
             {rightPanel === "trace" && <TraceSymbolPanel repoId={repoId} />}
+            {rightPanel === "pulls" && <PrReviewPanel repoId={repoId} />}
           </div>
         </div>
       </div>

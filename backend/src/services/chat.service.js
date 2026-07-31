@@ -35,6 +35,17 @@ export const askQuestion = async (userId, repoId, question) => {
 };
 
 export const askQuestionStream = async (userId, repoId, question) => {
+
+  const isOwner = repo.user.toString() === userId.toString();
+  const isMember = repo.team ? await isTeamMember(repo.team, userId) : false;
+  const isPublic = repo.visibility === "public";
+
+  if (!isOwner && !isMember && !isPublic) {
+   const error = new Error("You don't have access to this repository");
+   error.statusCode = 403;
+   throw error;
+  }
+
   const conversation = await findOrCreateConversation(userId, repoId);
   const { tokenStream, citedChunks } = await runAgentStream(repoId, conversation.messages, question);
 

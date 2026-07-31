@@ -14,6 +14,7 @@ import SettingsPage from "../pages/SettingsPage";
 import HistoryPage from "../pages/HistoryPage";
 import TeamsPage from "../pages/TeamsPage";
 import TeamDetailPage from "../pages/TeamDetailPage";
+import ExplorePage from "../pages/ExplorePage";
 
 
 
@@ -100,6 +101,14 @@ export const router = createBrowserRouter([
       <TeamDetailPage />
     </ProtectedRoute>
   ) 
+},
+{
+  path: "/explore",
+  element: (
+    <ProtectedRoute>
+      <ExplorePage />
+    </ProtectedRoute>
+  ),
 },  
   { path: "/", element: <Navigate to="/dashboard" replace /> },
   { path: "*", element: <Navigate to="/dashboard" replace /> },

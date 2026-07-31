@@ -55,3 +55,10 @@ export const findRepoByIdWithWebhookSecret = async (repoId) => {
 export const findRepoByGithubRepoId = async (githubRepoId) => {
   return await Repo.findOne({ githubRepoId: githubRepoId.toString() });
 };
+
+
+export const findPublicRepos = async () => {
+  return await Repo.find({ visibility: "public", status: "indexed" })
+    .populate("addedBy", "name")
+    .sort({ createdAt: -1 });
+};
