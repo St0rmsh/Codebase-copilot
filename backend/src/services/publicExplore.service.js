@@ -5,6 +5,9 @@ import axios from "axios";
 import { createRepo, updateRepoStatus, findRepoByGithubRepoId } from "../dao/repo.dao.js";
 import { walkDirectory } from "../utils/fileWalker.js";
 import { isManifestFile, parseManifestFile } from "../utils/dependencyParser.js";
+import { chunkRepo } from "./chunk.service.js";
+import { embedRepoChunks } from "./embedding.service.js";
+import { generateDependencyGraph } from "./graph.service.js";
 
 const TMP_DIR = path.resolve("tmp", "repos");
 
@@ -31,7 +34,6 @@ export const exploreRepoByUrl = async (githubUrl, userId) => {
 
   const githubRepoId = githubRes.data.id.toString();
 
-  // if this public repo is already explored by anyone, reuse it — no duplicate ingestion/cost
   const existing = await findRepoByGithubRepoId(githubRepoId);
   if (existing && existing.visibility === "public") {
     return existing;
@@ -61,7 +63,6 @@ export const exploreRepoByUrl = async (githubUrl, userId) => {
 
     const files = await walkDirectory(localPath);
 
-    // parse dependency manifests found among the files
     const dependencies = [];
     for (const file of files) {
       const fileName = file.path.split("/").pop();
@@ -76,14 +77,21 @@ export const exploreRepoByUrl = async (githubUrl, userId) => {
       }
     }
 
-    const updatedRepo = await updateRepoStatus(repo._id, "indexed", {
+    await updateRepoStatus(repo._id, "indexed", {
       files,
       fileCount: files.length,
       localPath,
       dependencies,
     });
 
-    return updatedRepo;
+    // chain chunking, embedding, and graph generation so the repo is fully usable immediately
+    await chunkRepo(repo._id);
+    await embedRepoChunks(repo._id);
+    await generateDependencyGraph(repo._id).catch(() => {}); // non-fatal if graph gen fails
+
+    const finalRepo = await updateRepoStatus(repo._id, "indexed"); // re-fetch to return latest state
+
+    return finalRepo;
   } catch (error) {
     await updateRepoStatus(repo._id, "failed", { errorMessage: error.message });
     await fs.rm(localPath, { recursive: true, force: true }).catch(() => {});
