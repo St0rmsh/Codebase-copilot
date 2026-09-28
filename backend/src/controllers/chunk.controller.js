@@ -16,8 +16,10 @@ export const runChunking = async (req, res, next) => {
 export const listChunks = async (req, res, next) => {
   try {
     const { repoId } = req.params;
-    const chunks = await getRepoChunks(repoId);
-    res.status(200).json({ success: true, count: chunks.length, chunks });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 200;
+    const result = await getRepoChunks(repoId, { page, limit });
+    res.status(200).json({ success: true, ...result });
   } catch (error) {
     next(error);
   }

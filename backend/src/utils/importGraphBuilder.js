@@ -99,12 +99,52 @@ const extractImportSources = (sourceCode, extension) => {
   return [];
 };
 
-const resolveImportToRepoFile = (importSource, currentFilePath, allFilePaths) => {
-  if (!importSource.startsWith(".") && !importSource.startsWith("/")) return null;
-  if (importSource.startsWith("http://") || importSource.startsWith("https://")) return null;
+// const resolveImportToRepoFile = (importSource, currentFilePath, allFilePaths) => {
+//   if (!importSource.startsWith(".") && !importSource.startsWith("/")) return null;
+//   if (importSource.startsWith("http://") || importSource.startsWith("https://")) return null;
 
-  const currentDir = path.dirname(currentFilePath);
-  const resolvedBase = path.normalize(path.join(currentDir, importSource)).replace(/\\/g, "/");
+//   const currentDir = path.dirname(currentFilePath);
+//   const resolvedBase = path.normalize(path.join(currentDir, importSource)).replace(/\\/g, "/");
+
+//   const candidates = [
+//     resolvedBase,
+//     `${resolvedBase}.js`,
+//     `${resolvedBase}.jsx`,
+//     `${resolvedBase}.ts`,
+//     `${resolvedBase}.tsx`,
+//     `${resolvedBase}.css`,
+//     `${resolvedBase}.scss`,
+//     `${resolvedBase}.py`,
+//     `${resolvedBase}.h`,
+//     `${resolvedBase}.hpp`,
+//     `${resolvedBase}.c`,
+//     `${resolvedBase}.cpp`,
+//     `${resolvedBase}/index.js`,
+//     `${resolvedBase}/index.jsx`,
+//     `${resolvedBase}/index.ts`,
+//     `${resolvedBase}/index.tsx`,
+//     `${resolvedBase}/__init__.py`,
+//   ];
+
+//   return candidates.find((c) => allFilePaths.has(c)) || null;
+// };
+
+
+const resolveImportToRepoFile = (importSource, currentFilePath, allFilePaths) => {
+  let resolvedBase;
+
+  if (importSource.startsWith("@/")) {
+    // common alias convention: @/ maps to src/ or repo root
+    const stripped = importSource.slice(2);
+    resolvedBase = `src/${stripped}`;
+  } else if (importSource.startsWith(".") || importSource.startsWith("/")) {
+    const currentDir = path.dirname(currentFilePath);
+    resolvedBase = path.normalize(path.join(currentDir, importSource)).replace(/\\/g, "/");
+  } else {
+    return null; // external package or unrecognized alias
+  }
+
+  if (resolvedBase.startsWith("http://") || resolvedBase.startsWith("https://")) return null;
 
   const candidates = [
     resolvedBase,
@@ -126,7 +166,23 @@ const resolveImportToRepoFile = (importSource, currentFilePath, allFilePaths) =>
     `${resolvedBase}/__init__.py`,
   ];
 
-  return candidates.find((c) => allFilePaths.has(c)) || null;
+  const found = candidates.find((c) => allFilePaths.has(c));
+  if (found) return found;
+
+  // fallback: if @/ -> src/ didn't match, try without the src/ prefix (root-level alias)
+  if (importSource.startsWith("@/")) {
+    const rootFallback = importSource.slice(2);
+    const fallbackCandidates = [
+      rootFallback,
+      `${rootFallback}.js`,
+      `${rootFallback}.jsx`,
+      `${rootFallback}.ts`,
+      `${rootFallback}.tsx`,
+    ];
+    return fallbackCandidates.find((c) => allFilePaths.has(c)) || null;
+  }
+
+  return null;
 };
 
 export const buildImportGraph = (filesWithContent) => {

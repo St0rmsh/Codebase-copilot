@@ -8,11 +8,12 @@ import { ChatCohere } from "@langchain/cohere";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import config from "../config/config.js";
 
-const geminiLLM = new ChatGoogleGenerativeAI({
-  apiKey: config.GOOGLE_API_KEY,
-  model: "gemini-2.0-flash",
-  temperature: 0.2,
-});
+// const geminiLLM = new ChatGoogleGenerativeAI({
+//   apiKey: config.GOOGLE_API_KEY,
+//   model: "gemini-2.0-flash",
+//   temperature: 0.2,
+// });
+
 const mistralLLM = new ChatMistralAI({
   apiKey: config.MISTRAL_API_KEY,
   model: "mistral-small-latest",
@@ -24,7 +25,7 @@ const cohereLLM = new ChatCohere({
   temperature: 0.2,
 });
 
-const PROVIDERS = [geminiLLM, mistralLLM, cohereLLM];
+const PROVIDERS = [mistralLLM, cohereLLM];
 
 const invokeWithFallback = async (messages) => {
   let lastError;

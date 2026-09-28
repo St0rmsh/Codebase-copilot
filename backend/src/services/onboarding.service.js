@@ -6,11 +6,13 @@ import { ChatCohere } from "@langchain/cohere";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import config from "../config/config.js";
 
-const geminiLLM = new ChatGoogleGenerativeAI({
-  apiKey: config.GOOGLE_API_KEY,
-  model: "gemini-2.0-flash",
-  temperature: 0.3,
-});
+// const geminiLLM = new ChatGoogleGenerativeAI({
+//   apiKey: config.GOOGLE_API_KEY,
+//   model: "gemini-2.0-flash",
+//   temperature: 0.3,
+// });
+
+
 const mistralLLM = new ChatMistralAI({
   apiKey: config.MISTRAL_API_KEY,
   model: "mistral-small-latest",
@@ -22,7 +24,7 @@ const cohereLLM = new ChatCohere({
   temperature: 0.3,
 });
 
-const PROVIDERS = [geminiLLM, mistralLLM, cohereLLM];
+const PROVIDERS = [mistralLLM, cohereLLM];
 
 const invokeWithFallback = async (messages) => {
   let lastError;
@@ -43,7 +45,7 @@ const buildFolderTree = (files) => {
     let node = tree;
     parts.forEach((part, i) => {
       if (i === parts.length - 1) {
-        node[part] = null; // file leaf
+        node[part] = null; 
       } else {
         node[part] = node[part] || {};
         node = node[part];

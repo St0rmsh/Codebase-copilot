@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 import Chunk from "../models/chunk.model.js";
-import { embedText } from "../utils/embedder.js";
+import { embedQuery } from "../utils/embedder.js";
 
 export const searchRepoChunks = async (repoId, query, topK = 5) => {
-  const queryEmbedding = await embedText(query);
+  const queryEmbedding = await embedQuery(query);
 
   const results = await Chunk.aggregate([
     {
@@ -37,7 +37,7 @@ export const searchRepoChunks = async (repoId, query, topK = 5) => {
 
 // Searches across multiple repos at once, using $in on the filter field
 export const searchMultiRepoChunks = async (repoIds, query, topKPerRepo = 4) => {
-  const queryEmbedding = await embedText(query);
+  const queryEmbedding = await embedQuery(query);
   const repoObjectIds = repoIds.map((id) => new mongoose.Types.ObjectId(id));
 
   const results = await Chunk.aggregate([

@@ -10,6 +10,8 @@ import { trace } from "../controllers/trace.controller.js";
 import { getDebugInfo, rerunChunkingHandler, rerunEmbeddingHandler, rerunGraphHandler } from "../controllers/debug.controller.js";
 import { syncRepoHandler } from "../controllers/sync.controller.js";
 import { listPrs, reviewPr } from "../controllers/prReview.controller.js";
+import { codeSearchHandler } from "../controllers/codeSearch.controller.js";
+
 
 
 const router = express.Router();
@@ -119,6 +121,10 @@ router.get("/:repoId/pulls", protect, listPrs);
 // @route POST /api/chunks/:repoId/pulls/review
 // @access Private
 router.post("/:repoId/pulls/review", protect, reviewPr);
+
+
+
+router.get("/:repoId/search-text", protect, codeSearchHandler);
 
 
 export default router;

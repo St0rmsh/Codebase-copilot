@@ -7,6 +7,8 @@ import { walkDirectory } from "../utils/fileWalker.js";
 import { deleteChunksByRepo } from "../dao/chunk.dao.js"
 import { isTeamMember } from "../dao/team.dao.js";
 import { updateRepoTeam } from "../dao/repo.dao.js";
+import { isManifestFile, parseManifestFile } from "../utils/dependencyParser.js";
+
 
 
 
@@ -49,10 +51,27 @@ export const ingestRepo = async (userId, repoData) => {
 
     const files = await walkDirectory(localPath);
 
+    const dependencies = [];
+    for (const file of files) {
+      const fileName = file.path.split("/").pop();
+      if (isManifestFile(fileName)) {
+      try {
+      const fullPath = path.join(localPath, file.path);
+      const content = await fs.readFile(fullPath, "utf-8");
+      dependencies.push(...parseManifestFile(fileName, content));
+    } catch {
+      continue;
+    }
+  }
+}
+
+    
+
     const updatedRepo = await updateRepoStatus(repo._id, "indexed", {
       files,
       fileCount: files.length,
       localPath,
+      dependencies,
     });
 
     // Clean up cloned folder — we only needed it for the file walk

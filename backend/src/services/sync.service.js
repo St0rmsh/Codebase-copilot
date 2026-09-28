@@ -47,7 +47,7 @@ export const syncRepo = async (repoId, userId) => {
     }
 
     // wipe and re-clone fresh to guarantee an accurate diff
-    await fs.rm(localPath, { recursive: true, force: true }).catch(() => {});
+    await fs.rm(localPath, { recursive: true, force: true }).catch(() => { });
     await fs.mkdir(TMP_DIR, { recursive: true });
     const git = simpleGit();
     await git.clone(authedCloneUrl, localPath, ["--depth", "1"]);
@@ -55,10 +55,25 @@ export const syncRepo = async (repoId, userId) => {
     const newFiles = await walkDirectory(localPath);
     const diff = diffFileLists(oldFiles, newFiles);
 
+    const dependencies = [];
+    for (const file of files) {
+      const fileName = file.path.split("/").pop();
+      if (isManifestFile(fileName)) {
+        try {
+          const fullPath = path.join(localPath, file.path);
+          const content = await fs.readFile(fullPath, "utf-8");
+          dependencies.push(...parseManifestFile(fileName, content));
+        } catch {
+          continue;
+        }
+      }
+    }
+
     await updateRepoStatus(repoId, "indexed", {
       files: newFiles,
       fileCount: newFiles.length,
       localPath,
+      dependencies,
     });
 
     // remove chunks for deleted/modified files so stale data doesn't linger
@@ -73,7 +88,7 @@ export const syncRepo = async (repoId, userId) => {
       // targeted re-chunk of only changed files is a further optimization for later
       chunkResult = await chunkRepo(repoId);
       embedResult = await embedRepoChunks(repoId);
-      await generateDependencyGraph(repoId).catch(() => {});
+      await generateDependencyGraph(repoId).catch(() => { });
     }
 
     return {

@@ -29,7 +29,7 @@ export const generateDependencyGraph = async (repoId) => {
     try {
       const fullPath = path.join(repo.localPath, file.path);
       const code = await fs.readFile(fullPath, "utf-8");
-      filesWithContent.push({ path: file.path, code });
+      filesWithContent.push({ path: file.path, code, extension: file.extension });
     } catch {
       continue; // skip unreadable files
     }

@@ -17,16 +17,19 @@ import { showToast } from "../App/toastSlice";
 import ExportChatButton from "../features/chat/components/ExportChatButton";
 import PrReviewPanel from "../features/repo/components/PrReviewPanel";
 import TechStackPanel from "../features/repo/components/TechStackPanel";
+import CodeSearchPanel from "../features/repo/components/CodeSearchPanel";
 
 
 
 
 const TABS = [
   { id: "code", label: "Code" },
+  { id: "search", label: "Search" },
   { id: "graph", label: "Dependency Graph" },
   { id: "trace", label: "Trace Symbol" },
   { id: "pulls", label: "Pull Requests" },
-    { id: "stack", label: "Tech Stack" },
+  { id: "stack", label: "Tech Stack" },
+
 
 ];
 
@@ -63,6 +66,14 @@ const RepoChatPage = () => {
     }
     setRightPanel("code");
   };
+
+  const handleSearchResultClick = async (match) => {
+  const chunkMatches = findChunksByFile(match.filePath);
+  if (chunkMatches.length > 0) {
+    setActiveChunk(chunkMatches[0]);
+  }
+  setRightPanel("code");
+};
 
 
 
@@ -143,6 +154,7 @@ const RepoChatPage = () => {
             </div>
 
             {rightPanel === "code" && <CodeViewer chunk={activeChunk} />}
+            {rightPanel === "search" && <CodeSearchPanel repoId={repoId} onResultClick={handleSearchResultClick} />}
             {rightPanel === "graph" && (
               <DependencyGraphView repoId={repoId} onNodeClick={handleGraphNodeClick} />
             )}

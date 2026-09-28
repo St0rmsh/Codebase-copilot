@@ -8,11 +8,11 @@ import config from "../config/config.js";
 import { searchMultiRepoChunks } from "./search.service.js";
 
 
-const geminiLLM = new ChatGoogleGenerativeAI({
-  apiKey: config.GOOGLE_API_KEY,
-  model: "gemini-2.0-flash",
-  temperature: 0.2,
-});
+// const geminiLLM = new ChatGoogleGenerativeAI({
+//   apiKey: config.GOOGLE_API_KEY,
+//   model: "gemini-2.0-flash",
+//   temperature: 0.2,
+// });
 
 const mistralLLM = new ChatMistralAI({
   apiKey: config.MISTRAL_API_KEY,
@@ -27,7 +27,6 @@ const cohereLLM = new ChatCohere({
 });
 
 const PROVIDERS = [
-  { name: "gemini", llm: geminiLLM },
   { name: "mistral", llm: mistralLLM },
   { name: "cohere", llm: cohereLLM },
 ];

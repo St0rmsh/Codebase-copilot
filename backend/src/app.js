@@ -21,7 +21,7 @@ import publicExploreRoutes from "./routes/publicExplore.routes.js";
 const app = express()
 
 
-app.use(cors({ origin: [config.CORS_ORIGIN], credentials: true }))
+app.use(cors({ origin: [config.CORS_ORIGIN] || 'http://localhost:5174' , credentials: true }))
 app.use(express.json({ limit: "10mb", verify: (req, res, buf) => { req.rawBody = buf; } }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }))
 app.use(cookieParser())
@@ -57,22 +57,29 @@ app.use("/api/multi-repo-chat", multiRepoChatRoutes);
 app.use("/api/indexing", indexingRoutes);
 
 
-
+// @routes http://localhost:3000/api/settings
+// settings routes
 app.use("/api/settings", settingsRoutes);
 
 
 
+// @routes http://localhost:3000/api/history
+// history routes
 app.use("/api/history", historyRoutes);
 
 
-
+// @routes http://localhost:3000/api/teams
+// teams routes
 app.use("/api/teams", teamRoutes);
 
 
+// @routes http://localhost:3000/api/webhooks
+// webhook routes
 app.use("/api/webhooks", webhookRoutes);
 
 
-
+// @routes http://localhost:3000/api/explore
+// public explore routes
 app.use("/api/explore", publicExploreRoutes);
 
 export default app

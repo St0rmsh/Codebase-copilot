@@ -108,6 +108,12 @@ export const loginUser = async ({ email, password }) => {
     throw error;
   }
 
+  if (!user.password) {
+    const error = new Error("This account uses Github sign-in. Please sign in with Github.");
+    error.statusCode = 400;
+    throw error;
+  }
+
   const isMatch = await user.comparePassword(password);
   if (!isMatch) {
     const error = new Error("Invalid email or password");

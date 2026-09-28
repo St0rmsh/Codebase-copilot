@@ -14,8 +14,13 @@ const OtpVerifyPage = () => {
     if (error) dispatch(showToast(error, "error"));
   }, [error, dispatch]);
 
+  useEffect(() => {
+    if (!pendingVerificationUserId) {
+      navigate("/login");
+    }
+  }, [pendingVerificationUserId, navigate]);
+
   if (!pendingVerificationUserId) {
-    navigate("/login");
     return null;
   }
 

@@ -16,7 +16,6 @@ const userSchema = new mongoose.Schema(
       required: function () {
         return !this.githubId;
       },
-      unique: true,
       sparse: true,
     },
     password: {

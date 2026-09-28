@@ -27,6 +27,8 @@ export const embedRepoChunks = async (repoId) => {
       console.error(`Failed to embed chunk ${chunk._id} (${chunk.symbolName}):`, err.message);
       failCount++;
     }
+    await new Promise((resolve) => setTimeout(resolve, 1600));
+
   }
 
   return { chunksEmbedded: successCount, failed: failCount, total: chunks.length };

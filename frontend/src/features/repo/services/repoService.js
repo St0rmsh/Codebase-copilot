@@ -115,3 +115,10 @@ export const fetchRepoById = async (repoId) => {
   const res = await axiosInstance.get(`/repos/${repoId}`);
   return res.data;
 };
+
+
+
+export const searchRepoCode = async (repoId, query) => {
+  const res = await axiosInstance.get(`/repos/${repoId}/search-text`, { params: { q: query } });
+  return res.data;
+};
