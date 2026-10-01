@@ -2,6 +2,9 @@ import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser"
 import morgan from "morgan"
+import path from "path"
+import fs from "fs"
+import { fileURLToPath } from "url"
 import config from "./config/config.js"
 import authRoutes from "./routes/auth.routes.js"
 import githubRoutes from "./routes/github.routes.js";
@@ -16,12 +19,17 @@ import webhookRoutes from "./routes/webhook.routes.js";
 import publicExploreRoutes from "./routes/publicExplore.routes.js";
 
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+// built frontend output (backend root / public)
+const publicDir = path.resolve(__dirname, "../public")
 
 
 const app = express()
 
 
-app.use(cors({ origin: [config.CORS_ORIGIN] || 'http://localhost:5174' , credentials: true }))
+app.use(cors({ origin: [config.CORS_ORIGIN || 'http://localhost:5174'], credentials: true }))
 app.use(express.json({ limit: "10mb", verify: (req, res, buf) => { req.rawBody = buf; } }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }))
 app.use(cookieParser())
@@ -81,5 +89,22 @@ app.use("/api/webhooks", webhookRoutes);
 // @routes http://localhost:3000/api/explore
 // public explore routes
 app.use("/api/explore", publicExploreRoutes);
+
+
+// unknown /api routes return JSON 404 instead of the frontend page
+app.use("/api", (req, res) => {
+    res.status(404).json({ message: "API route not found" })
+})
+
+
+// serve the built frontend (dist/public) and fall back to index.html for SPA routes
+if (fs.existsSync(publicDir)) {
+    app.use(express.static(publicDir))
+
+    app.use((req, res, next) => {
+        if (req.method !== "GET") return next()
+        res.sendFile(path.join(publicDir, "index.html"))
+    })
+}
 
 export default app
