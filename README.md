@@ -8,7 +8,7 @@ Index a repo, ask in plain English, and get streamed answers with file and line 
 
 [Features](#features) · [How It Works](#how-it-works) · [Quick Start](#quick-start) · [Deploy to Render](#deploy-to-render) · [API Overview](#api-overview) · [Project Layout](#project-layout)
 
-> **Live demo:** coming soon. A hosted demo link will be added here once deployment is live.
+> **Live demo:** [codebase-copilot-mmzx.onrender.com/indexing](https://codebase-copilot-mmzx.onrender.com/indexing). It runs on Render's free tier, so the first load after a pause can take a while.
 
 </div>
 
@@ -169,9 +169,11 @@ In production the backend serves the built frontend, so the whole app runs as a 
 | Setting | Value |
 | --- | --- |
 | Environment | Node |
-| Root directory | *(leave empty, so the build can see both `backend/` and `frontend/`)* |
-| Build command | `cd backend && npm install && npm run build` |
-| Start command | `cd backend && npm start` |
+| Root directory | `backend` |
+| Build command | `npm install && npm run build` |
+| Start command | `npm start` |
+
+Render still clones the whole repository, so the build script can reach `../frontend`. With a root directory set, commits that only touch `frontend/` do not auto-deploy; trigger a manual deploy for those.
 
 **Environment variables:** copy everything from `backend/.env` into the Render dashboard, then update the URLs to your live domain:
 
@@ -246,13 +248,10 @@ The backend does not have an automated test suite yet.
 
 ## Roadmap
 
-- [ ] Hosted live demo
 - [ ] Backend automated test suite
 
 ## Contributing
 
 Issues and pull requests are welcome. For larger changes, open an issue first to discuss what you'd like to change.
 
-## License
 
-Add a license file (for example MIT) and reference it here.
