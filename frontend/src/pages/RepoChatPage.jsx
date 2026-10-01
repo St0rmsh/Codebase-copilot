@@ -36,7 +36,7 @@ const TABS = [
 const RepoChatPage = () => {
   const { repoId } = useParams();
   const { repo } = useRepoById(repoId);
-  const { messages, streaming, sendStreaming, conversationId } = useChat(repoId);
+  const { messages, streaming, error, sendStreaming, conversationId } = useChat(repoId);
   const { loadChunks, findChunksByFile } = useRepoChunks(repoId);
   const [activeChunk, setActiveChunk] = useState(null);
   const [rightPanel, setRightPanel] = useState("code");
@@ -131,6 +131,11 @@ const RepoChatPage = () => {
                   />
                 );
               })}
+              {error && (
+                <p role="alert" className="mt-4 font-mono text-xs text-accent">
+                  {error}
+                </p>
+              )}
             </div>
 
             <div className="mt-4">

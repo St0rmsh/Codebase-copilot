@@ -9,7 +9,7 @@ import { useTeams } from "../features/team/hooks/useTeams";
 import Button from "../components/Button";
 
 const TeamsPage = () => {
-  const { teams, loading, refetch } = useTeams();
+  const { teams, loading, error, refetch } = useTeams();
   const [createOpen, setCreateOpen] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
   const navigate = useNavigate();
@@ -51,6 +51,8 @@ const TeamsPage = () => {
 
         {loading ? (
           <p className="font-mono text-xs text-textMuted animate-pulse">Loading teams...</p>
+        ) : error ? (
+          <p role="alert" className="font-mono text-xs text-accent">{error}</p>
         ) : teams.length === 0 ? (
           <p className="font-mono text-xs text-textMuted">
             No teams yet. Create one or join with an invite code.

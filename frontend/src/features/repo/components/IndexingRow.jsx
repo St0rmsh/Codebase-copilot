@@ -2,6 +2,7 @@ const statusColors = {
   indexed: "text-accentSoft",
   pending: "text-textMuted",
   cloning: "text-accent",
+  indexing: "text-accentSoft",
   failed: "text-accent",
 };
 

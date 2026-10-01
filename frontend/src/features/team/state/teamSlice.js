@@ -1,9 +1,11 @@
 import {
   createTeamRequest,
+  verifyCreateTeamRequest,
   fetchMyTeams,
   fetchTeamDetail,
   inviteToTeamRequest,
   joinTeamByCodeRequest,
+  verifyJoinTeamRequest,
 } from "../services/teamService";
 
 const initialState = {
@@ -46,13 +48,22 @@ export const loadMyTeams = () => async (dispatch) => {
   }
 };
 
-export const createTeam = (name) => async (dispatch) => {
+export const createTeam = (name) => async () => {
   try {
     const data = await createTeamRequest(name);
+    return { success: true, email: data.email, expiresAt: data.expiresAt };
+  } catch (err) {
+    return { success: false, message: err.response?.data?.message || "Failed to create team" };
+  }
+};
+
+export const verifyCreateTeam = (name, otp) => async (dispatch) => {
+  try {
+    const data = await verifyCreateTeamRequest(name, otp);
     dispatch({ type: CREATE_TEAM_SUCCESS, payload: data.team });
     return { success: true, team: data.team };
   } catch (err) {
-    return { success: false, message: err.response?.data?.message || "Failed to create team" };
+    return { success: false, message: err.response?.data?.message || "Failed to verify team creation" };
   }
 };
 
@@ -75,13 +86,22 @@ export const inviteMember = (teamId, email) => async () => {
   }
 };
 
-export const joinTeamByCode = (inviteCode) => async (dispatch) => {
+export const joinTeamByCode = (inviteCode) => async () => {
   try {
     const data = await joinTeamByCodeRequest(inviteCode);
+    return { success: true, email: data.email, expiresAt: data.expiresAt };
+  } catch (err) {
+    return { success: false, message: err.response?.data?.message || "Failed to join team" };
+  }
+};
+
+export const verifyJoinTeam = (inviteCode, otp) => async (dispatch) => {
+  try {
+    const data = await verifyJoinTeamRequest(inviteCode, otp);
     dispatch(loadMyTeams());
     return { success: true, team: data.team };
   } catch (err) {
-    return { success: false, message: err.response?.data?.message || "Failed to join team" };
+    return { success: false, message: err.response?.data?.message || "Failed to verify team join" };
   }
 };
 

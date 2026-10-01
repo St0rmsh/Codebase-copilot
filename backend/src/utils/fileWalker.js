@@ -9,6 +9,11 @@ const IGNORED_FILES = new Set([
   "package-lock.json", "yarn.lock", "pnpm-lock.yaml",
 ]);
 
+export const isGeneratedAssetPath = (filePath) => {
+  const normalizedPath = filePath.replace(/\\/g, "/");
+  return /(?:^|\/)public\/assets\//i.test(normalizedPath) || /\.(?:min|bundle)\.(?:js|mjs|css)$/i.test(normalizedPath);
+};
+
 export const walkDirectory = async (rootDir, currentDir = rootDir, results = []) => {
   const entries = await fs.readdir(currentDir, { withFileTypes: true });
 
@@ -21,6 +26,7 @@ export const walkDirectory = async (rootDir, currentDir = rootDir, results = [])
 
       const fullPath = path.join(currentDir, entry.name);
       const relativePath = path.relative(rootDir, fullPath);
+      if (isGeneratedAssetPath(relativePath)) continue;
       const stats = await fs.stat(fullPath);
       const extension = path.extname(entry.name);
 

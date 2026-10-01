@@ -4,7 +4,6 @@ import config from "./src/config/config.js";
 import dns from "dns"
 
 dns.setServers(['8.8.8.8','8.8.4.8'])
-dns.setDefaultResultOrder("ipv4first"); 
 
 
 connectDB()

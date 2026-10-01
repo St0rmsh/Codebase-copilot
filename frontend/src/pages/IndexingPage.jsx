@@ -9,7 +9,7 @@ const IndexingPage = () => {
   const totalChunks = repos.reduce((sum, r) => sum + r.totalChunks, 0);
   const totalEmbedded = repos.reduce((sum, r) => sum + r.embeddedChunks, 0);
   const overallPercent = totalChunks > 0 ? Math.round((totalEmbedded / totalChunks) * 100) : 0;
-  const activeCount = repos.filter((r) => r.status === "pending" || r.status === "cloning").length;
+  const activeCount = repos.filter((r) => ["pending", "cloning", "indexing"].includes(r.status)).length;
 
   return (
     <div className="flex min-h-screen bg-base">

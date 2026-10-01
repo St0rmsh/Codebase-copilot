@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import Chunk from "../models/chunk.model.js";
 import { embedQuery } from "../utils/embedder.js";
 
+const GENERATED_BUNDLE_PATH = /(?:^|\/)public\/assets\/|\.(?:min|bundle)\.(?:js|mjs|css)$/i;
+
 export const searchRepoChunks = async (repoId, query, topK = 5) => {
   const queryEmbedding = await embedQuery(query);
 
@@ -12,12 +14,14 @@ export const searchRepoChunks = async (repoId, query, topK = 5) => {
         path: "embedding",
         queryVector: queryEmbedding,
         numCandidates: 100,
-        limit: topK,
+        limit: topK * 5,
         filter: {
           repo: new mongoose.Types.ObjectId(repoId),
         },
       },
     },
+    { $match: { filePath: { $not: GENERATED_BUNDLE_PATH } } },
+    { $limit: topK },
     {
       $project: {
         repo: 1,
@@ -47,12 +51,14 @@ export const searchMultiRepoChunks = async (repoIds, query, topKPerRepo = 4) => 
         path: "embedding",
         queryVector: queryEmbedding,
         numCandidates: 100 * repoIds.length,
-        limit: topKPerRepo * repoIds.length,
+        limit: topKPerRepo * repoIds.length * 5,
         filter: {
           repo: { $in: repoObjectIds },
         },
       },
     },
+    { $match: { filePath: { $not: GENERATED_BUNDLE_PATH } } },
+    { $limit: topKPerRepo * repoIds.length },
     {
       $project: {
         repo: 1,

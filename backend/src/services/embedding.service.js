@@ -1,5 +1,7 @@
-import { findChunksWithoutEmbedding, updateChunkEmbedding } from "../dao/chunk.dao.js";
-import { embedText } from "../utils/embedder.js";
+import { findChunksWithoutEmbedding, updateChunkEmbeddings } from "../dao/chunk.dao.js";
+import { embedText, embedTextBatch } from "../utils/embedder.js";
+
+const EMBEDDING_BATCH_SIZE = 16;
 
 const buildEmbeddingInput = (chunk) => {
   // Include symbol name + file path as context, not just raw code —
@@ -17,18 +19,25 @@ export const embedRepoChunks = async (repoId) => {
   let successCount = 0;
   let failCount = 0;
 
-  for (const chunk of chunks) {
+  const persistBatch = async (batch) => {
     try {
-      const input = buildEmbeddingInput(chunk);
-      const embedding = await embedText(input);
-      await updateChunkEmbedding(chunk._id, embedding);
-      successCount++;
+      const embeddings = await embedTextBatch(batch.map(buildEmbeddingInput), EMBEDDING_BATCH_SIZE);
+      await updateChunkEmbeddings(batch, embeddings);
+      successCount += batch.length;
     } catch (err) {
-      console.error(`Failed to embed chunk ${chunk._id} (${chunk.symbolName}):`, err.message);
-      failCount++;
+      if ([400, 422].includes(err.response?.status) && batch.length > 1) {
+        const midpoint = Math.ceil(batch.length / 2);
+        await persistBatch(batch.slice(0, midpoint));
+        await persistBatch(batch.slice(midpoint));
+        return;
+      }
+      console.error(`Failed to embed batch starting at ${batch[0].filePath}:`, err.message);
+      failCount += batch.length;
     }
-    await new Promise((resolve) => setTimeout(resolve, 1600));
+  };
 
+  for (let offset = 0; offset < chunks.length; offset += EMBEDDING_BATCH_SIZE) {
+    await persistBatch(chunks.slice(offset, offset + EMBEDDING_BATCH_SIZE));
   }
 
   return { chunksEmbedded: successCount, failed: failCount, total: chunks.length };

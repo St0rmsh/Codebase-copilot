@@ -11,7 +11,6 @@ import {
 import { sendOtpEmail } from "../utils/mailer.js";
 import { updateUserProfile, deleteUserAccount, findUserByIdWithGithubToken } from "../dao/user.dao.js";
 import bcrypt from "bcrypt";
-import { acceptPendingInvites } from "./team.service.js";
 import User from "../models/user.model.js";
 
 
@@ -70,7 +69,6 @@ export const verifyOtp = async ({ userId, otp }) => {
   }
 
   const verifiedUser = await markUserVerified(user._id);
-  await acceptPendingInvites(verifiedUser.email, verifiedUser._id);
   const token = generateToken(verifiedUser._id);
 
   return {

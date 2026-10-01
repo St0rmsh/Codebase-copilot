@@ -1,9 +1,14 @@
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { askQuestion, askQuestionStreaming, resetChat } from "../state/chatSlice";
 
 export const useChat = (repoId) => {
   const dispatch = useDispatch();
   const { messages, loading, streaming, error, conversationId } = useSelector((state) => state.chat);
+
+  useEffect(() => {
+    dispatch(resetChat());
+  }, [dispatch, repoId]);
 
   const send = (question) => dispatch(askQuestion(repoId, question));
   const sendStreaming = (question) => dispatch(askQuestionStreaming(repoId, question));

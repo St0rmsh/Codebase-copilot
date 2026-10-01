@@ -5,11 +5,12 @@ import { findRepoById, updateRepoStatus } from "../dao/repo.dao.js";
 import { findUserByIdWithGithubToken as findUserToken } from "../dao/user.dao.js";
 import { walkDirectory } from "../utils/fileWalker.js";
 import { diffFileLists } from "../utils/fileDiff.js";
-import { deleteChunksByRepoAndFiles } from "../dao/chunk.dao.js";
+import { countChunksByRepo, deleteChunksByRepoAndFiles } from "../dao/chunk.dao.js";
 import { chunkRepo } from "./chunk.service.js";
 import { embedRepoChunks } from "./embedding.service.js";
 import { generateDependencyGraph } from "./graph.service.js";
 import { isTeamMember } from "../dao/team.dao.js";
+import { isManifestFile, parseManifestFile } from "../utils/dependencyParser.js";
 
 
 const TMP_DIR = path.resolve("tmp", "repos");
@@ -56,7 +57,7 @@ export const syncRepo = async (repoId, userId) => {
     const diff = diffFileLists(oldFiles, newFiles);
 
     const dependencies = [];
-    for (const file of files) {
+    for (const file of newFiles) {
       const fileName = file.path.split("/").pop();
       if (isManifestFile(fileName)) {
         try {
@@ -69,7 +70,7 @@ export const syncRepo = async (repoId, userId) => {
       }
     }
 
-    await updateRepoStatus(repoId, "indexed", {
+    await updateRepoStatus(repoId, "indexing", {
       files: newFiles,
       fileCount: newFiles.length,
       localPath,
@@ -83,13 +84,17 @@ export const syncRepo = async (repoId, userId) => {
     let chunkResult = { chunksCreated: 0 };
     let embedResult = { chunksEmbedded: 0 };
 
-    if (diff.changedPaths.length > 0) {
+    if (diff.changedPaths.length > 0 || (await countChunksByRepo(repoId)) === 0) {
       // re-chunk everything is simplest given chunkRepo's current "wipe + rebuild" design;
       // targeted re-chunk of only changed files is a further optimization for later
       chunkResult = await chunkRepo(repoId);
       embedResult = await embedRepoChunks(repoId);
       await generateDependencyGraph(repoId).catch(() => { });
+    } else {
+      embedResult = await embedRepoChunks(repoId);
     }
+
+    await updateRepoStatus(repoId, "indexed");
 
     return {
       added: diff.added.length,

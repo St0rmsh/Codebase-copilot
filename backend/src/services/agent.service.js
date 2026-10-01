@@ -22,7 +22,7 @@ const mistralLLM = new ChatMistralAI({
 
 const cohereLLM = new ChatCohere({
   apiKey: config.COHERE_API_KEY,
-  model: "command-r",
+  model: config.COHERE_MODEL,
   temperature: 0.2,
 });
 
@@ -31,14 +31,41 @@ const PROVIDERS = [
   { name: "cohere", llm: cohereLLM },
 ];
 
+const providerCooldowns = new Map();
+const isRateLimitError = (error) => {
+  const status = error.status ?? error.statusCode ?? error.response?.status ?? error.cause?.status;
+  return status === 429 || /rate[\s_-]*limit|status\s*429/i.test(error.message || "");
+};
+
+const markRateLimited = (name, error) => {
+  const retryAfter = error.response?.headers?.["retry-after"] || error.headers?.["retry-after"];
+  const retrySeconds = Number(retryAfter);
+  const cooldownMs = Number.isFinite(retrySeconds) && retrySeconds > 0
+    ? Math.min(retrySeconds * 1000, 5 * 60 * 1000)
+    : 60 * 1000;
+  providerCooldowns.set(name, Date.now() + cooldownMs);
+};
+
+const isCoolingDown = (name) => {
+  const until = providerCooldowns.get(name);
+  if (!until) return false;
+  if (until <= Date.now()) {
+    providerCooldowns.delete(name);
+    return false;
+  }
+  return true;
+};
+
 const invokeWithFallback = async (messages) => {
   let lastError;
   for (const { name, llm } of PROVIDERS) {
+    if (isCoolingDown(name)) continue;
     try {
       const response = await llm.invoke(messages);
       return { response, provider: name };
     } catch (err) {
       console.error(`${name} failed:`, err.message);
+      if (isRateLimitError(err)) markRateLimited(name, err);
       lastError = err;
     }
   }
@@ -48,18 +75,25 @@ const invokeWithFallback = async (messages) => {
 async function* streamWithFallback(messages) {
   let lastError;
   for (const { name, llm } of PROVIDERS) {
+    if (isCoolingDown(name)) continue;
+    let emittedToken = false;
     try {
       const stream = await llm.stream(messages);
       for await (const chunk of stream) {
-        if (chunk.content) yield chunk.content;
+        if (chunk.content) {
+          emittedToken = true;
+          yield chunk.content;
+        }
       }
       return;
     } catch (err) {
       console.error(`${name} streaming failed:`, err.message);
+      if (isRateLimitError(err)) markRateLimited(name, err);
       lastError = err;
+      if (emittedToken) throw err;
     }
   }
-  throw lastError;
+  throw lastError || new Error("All chat providers are temporarily rate limited. Please retry shortly.");
 }
 
 const AgentState = Annotation.Root({
@@ -96,6 +130,16 @@ ${contextBlock}`;
 };
 
 const generateNode = async (state) => {
+  if (state.retrievedChunks.length === 0) {
+    return {
+      messages: [
+        new AIMessage(
+          "I couldn't find indexed code for this repository. Open Debugger to re-run chunking and embedding, or use Deploy to rebuild it, then try again."
+        ),
+      ],
+    };
+  }
+
   const systemPrompt = buildSystemPrompt(state.retrievedChunks);
   const messages = [new SystemMessage(systemPrompt), ...state.messages];
   const { response, provider } = await invokeWithFallback(messages);
@@ -142,6 +186,17 @@ export const runAgent = async (repoId, conversationHistory, newQuestion) => {
 export const runAgentStream = async (repoId, conversationHistory, newQuestion) => {
   const chunks = await searchRepoChunks(repoId, newQuestion, 6);
 
+  if (chunks.length === 0) {
+    const message =
+      "I couldn't find indexed code for this repository. Open Debugger to re-run chunking and embedding, or use Deploy to rebuild it, then try again.";
+    return {
+      tokenStream: (async function* () {
+        yield message;
+      })(),
+      citedChunks: [],
+    };
+  }
+
   const systemPrompt = buildSystemPrompt(chunks);
   const historyMessages = conversationHistory.map((m) =>
     m.role === "user" ? new HumanMessage(m.content) : new AIMessage(m.content)
@@ -185,6 +240,17 @@ ${contextBlock}`;
 
 export const runMultiRepoAgentStream = async (repoIds, repoNameById, conversationHistory, newQuestion) => {
   const chunks = await searchMultiRepoChunks(repoIds, newQuestion, 4);
+
+  if (chunks.length === 0) {
+    const message =
+      "I couldn't find indexed code in the selected repositories. Open Debugger to re-run chunking and embedding for them, then try again.";
+    return {
+      tokenStream: (async function* () {
+        yield message;
+      })(),
+      citedChunks: [],
+    };
+  }
 
   const systemPrompt = buildMultiRepoSystemPrompt(chunks, repoNameById);
   const historyMessages = conversationHistory.map((m) =>

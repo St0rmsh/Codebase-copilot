@@ -17,6 +17,7 @@ const config = {
     SMTP_EMAIL: process.env.SMTP_EMAIL,
     SMTP_APP_PASSWORD: process.env.SMTP_APP_PASSWORD,
     COHERE_API_KEY: process.env.COHERE_API_KEY,
+    COHERE_MODEL: process.env.COHERE_MODEL || "command-a-03-2025",
     BACKEND_URL: process.env.BACKEND_URL,
 };
 

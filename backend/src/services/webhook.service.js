@@ -22,21 +22,91 @@ export const enableAutoSync = async (repoId, userId) => {
 
   const webhookSecret = generateWebhookSecret();
   const [owner, repoName] = repo.fullName.split("/");
+  const githubApiUrl = `https://api.github.com/repos/${owner}/${repoName}`;
+  const githubHeaders = {
+    Authorization: `Bearer ${user.githubAccessToken}`,
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+  };
+  let webhookUrl;
+  try {
+    webhookUrl = new URL("/api/webhooks/github", config.BACKEND_URL);
+  } catch {
+    const error = new Error("BACKEND_URL must be configured as an absolute public HTTPS URL");
+    error.statusCode = 500;
+    throw error;
+  }
 
-  const res = await axios.post(
+  let githubRepo;
+  try {
+    githubRepo = await axios.get(githubApiUrl, { headers: githubHeaders });
+  } catch (cause) {
+    const error = new Error(
+      cause.response?.status === 404
+        ? "The connected GitHub account cannot access this repository. Reconnect the account that owns the repo, or verify the repo has not moved."
+        : `Could not verify repository access with GitHub: ${cause.response?.data?.message || cause.message}`
+    );
+    error.statusCode = cause.response?.status === 404 ? 403 : 502;
+    throw error;
+  }
+
+  if (githubRepo.data.permissions?.admin === false) {
+    const error = new Error("The connected GitHub account needs admin access to create repository webhooks");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  if (webhookUrl.protocol !== "https:") {
+    const error = new Error("BACKEND_URL must use HTTPS so GitHub can deliver webhook events");
+    error.statusCode = 500;
+    throw error;
+  }
+
+  let res;
+  try {
+    res = await axios.post(
     `https://api.github.com/repos/${owner}/${repoName}/hooks`,
     {
       name: "web",
       active: true,
       events: ["push"],
       config: {
-        url: `${config.BACKEND_URL}/api/webhooks/github`,
+        url: webhookUrl.toString(),
         content_type: "json",
         secret: webhookSecret,
       },
     },
-    { headers: { Authorization: `Bearer ${user.githubAccessToken}` } }
-  );
+      {
+        headers: githubHeaders,
+      }
+    );
+  } catch (cause) {
+    const status = cause.response?.status;
+    const githubMessage = cause.response?.data?.message;
+    let message;
+
+    if (status === 401) {
+      message = "GitHub authorization failed. Reconnect your GitHub account and try again.";
+    } else if (status === 403) {
+      message = "GitHub denied webhook creation. Confirm you have admin access to this repository and reconnect GitHub if its authorization changed.";
+    } else if (status === 422) {
+      message = `GitHub rejected the webhook configuration: ${githubMessage || "check the callback URL"}`;
+    } else if (status === 404) {
+      message = "GitHub could not create this webhook. Confirm the connected account has admin access to the repository.";
+    } else if (status) {
+      message = `GitHub webhook creation failed (${status}): ${githubMessage || cause.message}`;
+    } else {
+      message = "Could not reach GitHub while creating the webhook. Check the backend network connection.";
+    }
+
+    const error = new Error(message);
+    error.statusCode = status === 401 || status === 403 || status === 404
+      ? 403
+      : status === 422
+        ? 400
+        : 502;
+    throw error;
+  }
 
   await saveWebhookInfo(repoId, res.data.id, webhookSecret);
 

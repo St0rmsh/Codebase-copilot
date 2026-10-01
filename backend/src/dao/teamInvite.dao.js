@@ -15,3 +15,7 @@ export const findPendingInvitesForEmail = async (email) => {
 export const markInviteAccepted = async (inviteId) => {
   return await TeamInvite.findByIdAndUpdate(inviteId, { status: "accepted" });
 };
+
+export const markPendingInviteAccepted = async (teamId, email) => {
+  return await TeamInvite.updateOne({ team: teamId, email, status: "pending" }, { status: "accepted" });
+};

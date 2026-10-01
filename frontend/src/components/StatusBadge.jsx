@@ -2,6 +2,7 @@ const statusConfig = {
   indexed: { label: "INDEXED", color: "bg-accent" },
   pending: { label: "PENDING", color: "bg-textMuted" },
   cloning: { label: "SYNCING...", color: "bg-accentSoft" },
+  indexing: { label: "INDEXING...", color: "bg-accent" },
   failed: { label: "FAILED", color: "bg-red-600" },
 };
 

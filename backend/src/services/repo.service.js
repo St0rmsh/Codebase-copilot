@@ -8,6 +8,9 @@ import { deleteChunksByRepo } from "../dao/chunk.dao.js"
 import { isTeamMember } from "../dao/team.dao.js";
 import { updateRepoTeam } from "../dao/repo.dao.js";
 import { isManifestFile, parseManifestFile } from "../utils/dependencyParser.js";
+import { chunkRepo } from "./chunk.service.js";
+import { embedRepoChunks } from "./embedding.service.js";
+import { generateDependencyGraph } from "./graph.service.js";
 
 
 
@@ -67,12 +70,18 @@ export const ingestRepo = async (userId, repoData) => {
 
     
 
-    const updatedRepo = await updateRepoStatus(repo._id, "indexed", {
+    await updateRepoStatus(repo._id, "indexing", {
       files,
       fileCount: files.length,
       localPath,
       dependencies,
     });
+
+    await chunkRepo(repo._id);
+    await embedRepoChunks(repo._id);
+    await generateDependencyGraph(repo._id).catch(() => {});
+
+    const updatedRepo = await updateRepoStatus(repo._id, "indexed");
 
     // Clean up cloned folder — we only needed it for the file walk
     // await fs.rm(localPath, { recursive: true, force: true });

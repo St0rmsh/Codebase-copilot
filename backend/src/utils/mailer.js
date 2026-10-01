@@ -127,7 +127,7 @@ export const sendOtpEmail = async (toEmail, otp) => {
 
 
 
-const buildTeamInviteEmailHtml = (teamName) => `
+const buildTeamInviteEmailHtml = (teamName, inviteCode) => `
 <!DOCTYPE html>
 <html>
 <body style="margin:0; padding:0; background-color:#0A0A0A; font-family: 'Courier New', Courier, monospace;">
@@ -142,7 +142,10 @@ const buildTeamInviteEmailHtml = (teamName) => `
             You've been invited to join the <strong style="color:#E8302A;">${teamName}</strong> workspace on Codebase Copilot.
           </p>
           <p style="color:#8A8A8A; font-size:12px; margin-top:16px;">
-            Log in or create an account with this email address to automatically join the team.
+            Sign in with this email address, open Teams, and enter this invite code. We will email you a verification code before you join.
+          </p>
+          <p style="color:#F2A79D; font-size:20px; letter-spacing:4px; margin-top:16px;">
+            ${inviteCode}
           </p>
         </td></tr>
       </table>
@@ -152,11 +155,22 @@ const buildTeamInviteEmailHtml = (teamName) => `
 </html>
 `;
 
-export const sendTeamInviteEmail = async (toEmail, teamName) => {
+export const sendTeamInviteEmail = async (toEmail, teamName, inviteCode) => {
   await transporter.sendMail({
     from: `"Codebase Copilot" <${config.SMTP_EMAIL}>`,
     to: toEmail,
     subject: `You've been invited to join ${teamName}`,
-    html: buildTeamInviteEmailHtml(teamName),
+    html: buildTeamInviteEmailHtml(teamName, inviteCode),
+  });
+};
+
+export const sendTeamActionOtpEmail = async (toEmail, otp, action) => {
+  const actionText = action === "create-team" ? "create a team" : "join a team";
+  await transporter.sendMail({
+    from: `"Codebase Copilot" <${config.SMTP_EMAIL}>`,
+    to: toEmail,
+    subject: `Verify your request to ${actionText}`,
+    text: `Use verification code ${otp} to ${actionText}. This code expires in 10 minutes.`,
+    html: `<p>Use verification code <strong>${otp}</strong> to ${actionText}.</p><p>This code expires in 10 minutes.</p>`,
   });
 };

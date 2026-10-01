@@ -21,7 +21,7 @@ const AutoSyncToggle = ({ repoId, initialEnabled = false }) => {
         dispatch(showToast("Auto-sync enabled — pushes to Github will trigger automatic re-indexing.", "success"));
       }
     } catch (err) {
-      dispatch(showToast(err.response?.data?.message || "Failed to update auto-sync.", "error"));
+      dispatch(showToast(err.response?.data?.message || err.message || "Failed to update auto-sync.", "error"));
     } finally {
       setLoading(false);
     }

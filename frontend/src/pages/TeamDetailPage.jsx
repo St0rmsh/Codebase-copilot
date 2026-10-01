@@ -10,6 +10,7 @@ import {
   removeMultipleMembersRequest,
   leaveTeamRequest,
   deleteTeamRequest,
+  transferTeamAdminRequest,
 } from "../features/team/services/teamService";
 import { showToast } from "../App/toastSlice";
 
@@ -73,12 +74,34 @@ const TeamDetailPage = () => {
   };
 
   const handleLeaveTeam = async () => {
+    if (isOwner && team.members.length < 2) {
+      dispatch(showToast("Add another member before leaving, or delete the team.", "error"));
+      return;
+    }
+    if (isOwner && !window.confirm("Leave this team? A random remaining member will become admin.")) return;
+
     try {
-      await leaveTeamRequest(teamId);
-      dispatch(showToast("You left the team.", "success"));
+      const result = await leaveTeamRequest(teamId);
+      dispatch(showToast(
+        result.successorName
+          ? `You left the team. ${result.successorName} is now admin.`
+          : "You left the team.",
+        "success"
+      ));
       navigate("/teams");
     } catch (err) {
       dispatch(showToast(err.response?.data?.message || "Failed to leave team.", "error"));
+    }
+  };
+
+  const handleTransferAdmin = async (memberId, memberName) => {
+    if (!window.confirm(`Make ${memberName} the new team admin?`)) return;
+    try {
+      await transferTeamAdminRequest(teamId, memberId);
+      dispatch(showToast(`${memberName} is now the team admin.`, "success"));
+      refetch();
+    } catch (err) {
+      dispatch(showToast(err.response?.data?.message || "Failed to transfer admin role.", "error"));
     }
   };
 
@@ -156,16 +179,24 @@ const TeamDetailPage = () => {
                     )}
                     <span className="font-mono text-sm">{memberName}</span>
                     <span className="font-mono text-xs text-textMuted uppercase tracking-widest2">
-                      {m.role}
+                      {isThisOwner ? "admin" : "member"}
                     </span>
                   </div>
                   {isOwner && !isThisOwner && (
-                    <button
-                      onClick={() => handleRemoveMember(memberId, memberName)}
-                      className="font-mono text-xs text-textMuted hover:text-accent"
-                    >
-                      Remove
-                    </button>
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={() => handleTransferAdmin(memberId, memberName)}
+                        className="font-mono text-xs text-accentSoft hover:text-white"
+                      >
+                        Make admin
+                      </button>
+                      <button
+                        onClick={() => handleRemoveMember(memberId, memberName)}
+                        className="font-mono text-xs text-textMuted hover:text-accent"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   )}
                 </div>
               );
@@ -198,7 +229,7 @@ const TeamDetailPage = () => {
           <h3 className="font-mono text-sm tracking-widest2 uppercase text-accent mb-4">
             Danger Zone
           </h3>
-          {isOwner ? (
+          {isOwner && (
             <button
               onClick={handleDeleteTeam}
               className={`font-mono text-xs uppercase tracking-widest2 px-4 py-2 border transition ${
@@ -209,14 +240,13 @@ const TeamDetailPage = () => {
             >
               {confirmDeleteTeam ? "Confirm Delete Team" : "Delete Team"}
             </button>
-          ) : (
-            <button
-              onClick={handleLeaveTeam}
-              className="font-mono text-xs uppercase tracking-widest2 px-4 py-2 border border-accent text-accent hover:bg-accent hover:text-white transition"
-            >
-              Leave Team
-            </button>
           )}
+          <button
+            onClick={handleLeaveTeam}
+            className="ml-3 font-mono text-xs uppercase tracking-widest2 px-4 py-2 border border-accent text-accent hover:bg-accent hover:text-white transition"
+          >
+            {isOwner ? "Transfer Admin & Leave" : "Leave Team"}
+          </button>
         </div>
       </main>
     </div>

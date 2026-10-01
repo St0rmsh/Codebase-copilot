@@ -1,25 +1,37 @@
 import {
-  createNewTeam,
+  requestCreateTeamOtp,
+  verifyCreateTeamOtp,
   getMyTeams,
   getTeamDetail,
   inviteByEmail,
-  joinViaInviteCode,
+  requestJoinTeamOtp,
+  verifyJoinTeamOtp,
   removeMember,
   leaveTeam,
   deleteTeam,
-  removeMultipleMembers
+  removeMultipleMembers,
+  transferTeamOwner,
 } from "../services/team.service.js";
-
-
 
 export const createTeamHandler = async (req, res, next) => {
   try {
     const { name } = req.body;
-    if (!name) {
+    const result = await requestCreateTeamOtp(name, req.user._id);
+    res.status(200).json({ success: true, requiresOtp: true, ...result });
+  } catch (error) {
+    if (error.statusCode) res.status(error.statusCode);
+    next(error);
+  }
+};
+
+export const verifyCreateTeamHandler = async (req, res, next) => {
+  try {
+    const { name, otp } = req.body;
+    if (!name || !otp) {
       res.status(400);
-      throw new Error("Team name is required");
+      throw new Error("Team name and OTP are required");
     }
-    const team = await createNewTeam(name, req.user._id);
+    const team = await verifyCreateTeamOtp(name, otp, req.user._id);
     res.status(201).json({ success: true, team });
   } catch (error) {
     if (error.statusCode) res.status(error.statusCode);
@@ -38,8 +50,7 @@ export const listTeamsHandler = async (req, res, next) => {
 
 export const getTeamHandler = async (req, res, next) => {
   try {
-    const { teamId } = req.params;
-    const team = await getTeamDetail(teamId, req.user._id);
+    const team = await getTeamDetail(req.params.teamId, req.user._id);
     res.status(200).json({ success: true, team });
   } catch (error) {
     if (error.statusCode) res.status(error.statusCode);
@@ -49,13 +60,12 @@ export const getTeamHandler = async (req, res, next) => {
 
 export const inviteHandler = async (req, res, next) => {
   try {
-    const { teamId } = req.params;
     const { email } = req.body;
     if (!email) {
       res.status(400);
       throw new Error("Email is required");
     }
-    await inviteByEmail(teamId, email, req.user._id);
+    await inviteByEmail(req.params.teamId, email, req.user._id);
     res.status(200).json({ success: true, message: "Invite sent" });
   } catch (error) {
     if (error.statusCode) res.status(error.statusCode);
@@ -66,11 +76,22 @@ export const inviteHandler = async (req, res, next) => {
 export const joinByCodeHandler = async (req, res, next) => {
   try {
     const { inviteCode } = req.body;
-    if (!inviteCode) {
+    const result = await requestJoinTeamOtp(inviteCode, req.user._id);
+    res.status(200).json({ success: true, requiresOtp: true, ...result });
+  } catch (error) {
+    if (error.statusCode) res.status(error.statusCode);
+    next(error);
+  }
+};
+
+export const verifyJoinByCodeHandler = async (req, res, next) => {
+  try {
+    const { inviteCode, otp } = req.body;
+    if (!inviteCode || !otp) {
       res.status(400);
-      throw new Error("Invite code is required");
+      throw new Error("Invite code and OTP are required");
     }
-    const team = await joinViaInviteCode(inviteCode, req.user._id);
+    const team = await verifyJoinTeamOtp(inviteCode, otp, req.user._id);
     res.status(200).json({ success: true, team });
   } catch (error) {
     if (error.statusCode) res.status(error.statusCode);
@@ -78,14 +99,9 @@ export const joinByCodeHandler = async (req, res, next) => {
   }
 };
 
-
-
-
-
 export const removeMemberHandler = async (req, res, next) => {
   try {
-    const { teamId, memberId } = req.params;
-    const team = await removeMember(teamId, memberId, req.user._id);
+    const team = await removeMember(req.params.teamId, req.params.memberId, req.user._id);
     res.status(200).json({ success: true, team });
   } catch (error) {
     if (error.statusCode) res.status(error.statusCode);
@@ -95,9 +111,8 @@ export const removeMemberHandler = async (req, res, next) => {
 
 export const leaveTeamHandler = async (req, res, next) => {
   try {
-    const { teamId } = req.params;
-    await leaveTeam(teamId, req.user._id);
-    res.status(200).json({ success: true, message: "Left team" });
+    const result = await leaveTeam(req.params.teamId, req.user._id);
+    res.status(200).json({ success: true, message: "Left team", ...result });
   } catch (error) {
     if (error.statusCode) res.status(error.statusCode);
     next(error);
@@ -106,8 +121,7 @@ export const leaveTeamHandler = async (req, res, next) => {
 
 export const deleteTeamHandler = async (req, res, next) => {
   try {
-    const { teamId } = req.params;
-    const result = await deleteTeam(teamId, req.user._id);
+    const result = await deleteTeam(req.params.teamId, req.user._id);
     res.status(200).json({ success: true, ...result });
   } catch (error) {
     if (error.statusCode) res.status(error.statusCode);
@@ -115,20 +129,29 @@ export const deleteTeamHandler = async (req, res, next) => {
   }
 };
 
-
-
-
-
-
 export const removeMultipleMembersHandler = async (req, res, next) => {
   try {
-    const { teamId } = req.params;
     const { memberIds } = req.body;
     if (!Array.isArray(memberIds) || memberIds.length === 0) {
       res.status(400);
       throw new Error("memberIds array is required");
     }
-    const team = await removeMultipleMembers(teamId, memberIds, req.user._id);
+    const team = await removeMultipleMembers(req.params.teamId, memberIds, req.user._id);
+    res.status(200).json({ success: true, team });
+  } catch (error) {
+    if (error.statusCode) res.status(error.statusCode);
+    next(error);
+  }
+};
+
+export const transferTeamAdminHandler = async (req, res, next) => {
+  try {
+    const { memberId } = req.body;
+    if (!memberId) {
+      res.status(400);
+      throw new Error("memberId is required");
+    }
+    const team = await transferTeamOwner(req.params.teamId, memberId, req.user._id);
     res.status(200).json({ success: true, team });
   } catch (error) {
     if (error.statusCode) res.status(error.statusCode);

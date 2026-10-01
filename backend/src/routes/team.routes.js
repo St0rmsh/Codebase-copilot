@@ -1,14 +1,17 @@
 import express from "express";
 import {
   createTeamHandler,
+  verifyCreateTeamHandler,
   listTeamsHandler,
   getTeamHandler,
   inviteHandler,
   joinByCodeHandler,
+  verifyJoinByCodeHandler,
   removeMemberHandler,
   leaveTeamHandler,
   deleteTeamHandler,
   removeMultipleMembersHandler,
+  transferTeamAdminHandler,
 } from "../controllers/team.controller.js";
 import { protect } from "../middlewares/auth.middleware.js";
 
@@ -18,6 +21,7 @@ const router = express.Router();
 //@desc: Create a new team
 //@access: Protected
 router.post("/", protect, createTeamHandler);
+router.post("/create/verify", protect, verifyCreateTeamHandler);
 
 //@route: GET /api/teams
 //@desc: Get all teams
@@ -38,6 +42,8 @@ router.post("/:teamId/invite", protect, inviteHandler);
 //@desc: Join a team using an invite code
 //@access: Protected
 router.post("/join", protect, joinByCodeHandler);
+router.post("/join/verify", protect, verifyJoinByCodeHandler);
+router.patch("/:teamId/admin", protect, transferTeamAdminHandler);
 
 
 //@route: DELETE /api/teams/:teamId/members/:memberId

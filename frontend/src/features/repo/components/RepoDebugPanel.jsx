@@ -107,7 +107,7 @@ const RepoDebugPanel = ({ repoId }) => {
       )}
 
       <div className="bg-panel border border-border p-4 mb-8">
-        <AutoSyncToggle repoId={repoId} initialEnabled={!!info.webhookId} />
+        <AutoSyncToggle key={repoId} repoId={repoId} initialEnabled={!!info.webhookId} />
       </div>
 
       <div className="flex flex-col gap-3">

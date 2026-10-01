@@ -77,7 +77,7 @@ export const exploreRepoByUrl = async (githubUrl, userId) => {
       }
     }
 
-    await updateRepoStatus(repo._id, "indexed", {
+    await updateRepoStatus(repo._id, "indexing", {
       files,
       fileCount: files.length,
       localPath,

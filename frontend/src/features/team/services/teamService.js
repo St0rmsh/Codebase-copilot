@@ -5,6 +5,11 @@ export const createTeamRequest = async (name) => {
   return res.data;
 };
 
+export const verifyCreateTeamRequest = async (name, otp) => {
+  const res = await axiosInstance.post("/teams/create/verify", { name, otp });
+  return res.data;
+};
+
 export const fetchMyTeams = async () => {
   const res = await axiosInstance.get("/teams");
   return res.data;
@@ -25,6 +30,16 @@ export const joinTeamByCodeRequest = async (inviteCode) => {
   return res.data;
 };
 
+export const verifyJoinTeamRequest = async (inviteCode, otp) => {
+  const res = await axiosInstance.post("/teams/join/verify", { inviteCode, otp });
+  return res.data;
+};
+
+export const transferTeamAdminRequest = async (teamId, memberId) => {
+  const res = await axiosInstance.patch(`/teams/${teamId}/admin`, { memberId });
+  return res.data;
+};
+
 export const shareRepoWithTeamRequest = async (repoId, teamId) => {
   const res = await axiosInstance.post(`/repos/${repoId}/share`, { teamId });
   return res.data;
@@ -38,7 +53,7 @@ export const removeMemberRequest = async (teamId, memberId) => {
 };
 
 export const leaveTeamRequest = async (teamId) => {
-  const res = await axiosInstance.post(`/teams/${teamId}/leave`);
+  const res = await axiosInstance.delete(`/teams/${teamId}/leave`);
   return res.data;
 };
 

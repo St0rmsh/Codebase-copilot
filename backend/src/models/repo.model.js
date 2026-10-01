@@ -39,7 +39,7 @@ const repoSchema = new mongoose.Schema(
     localPath: { type: String, default: null },
     status: {
       type: String,
-      enum: ["pending", "cloning", "indexed", "failed"],
+      enum: ["pending", "cloning", "indexing", "indexed", "failed"],
       default: "pending",
     },
     team: { type: mongoose.Schema.Types.ObjectId, ref: "Team", default: null },

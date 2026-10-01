@@ -43,9 +43,25 @@ export const askQuestionStream = async (userId, repoId, question) => {
 };
 
 export const askMultiRepoQuestionStream = async (userId, repoIds, question) => {
-  const conversation = await findOrCreateMultiRepoConversation(userId, repoIds);
-
   const repos = await Promise.all(repoIds.map((id) => findRepoById(id)));
+  if (repos.some((repo) => !repo)) {
+    const error = new Error("One or more repositories were not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  for (const repo of repos) {
+    const isOwner = repo.user?.toString() === userId.toString();
+    const isMember = repo.team ? await isTeamMember(repo.team, userId) : false;
+    const isPublic = repo.visibility === "public";
+    if (!isOwner && !isMember && !isPublic) {
+      const error = new Error("You don't have access to one or more repositories");
+      error.statusCode = 403;
+      throw error;
+    }
+  }
+
+  const conversation = await findOrCreateMultiRepoConversation(userId, repoIds);
   const repoNameById = {};
   repos.forEach((r) => {
     if (r) repoNameById[r._id.toString()] = r.name;

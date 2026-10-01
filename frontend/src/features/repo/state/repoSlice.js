@@ -1,4 +1,4 @@
-import { fetchUserRepos, ingestRepo, chunkRepo, embedRepo } from "../services/repoService";
+import { fetchUserRepos, ingestRepo } from "../services/repoService";
 
 const initialState = {
   repos: [],
@@ -50,8 +50,6 @@ export const ingestAndPrepareRepo = (repoData) => async (dispatch) => {
   dispatch({ type: INGEST_START });
   try {
     const { repo } = await ingestRepo(repoData);
-    await chunkRepo(repo._id);
-    await embedRepo(repo._id);
     dispatch({ type: INGEST_SUCCESS, payload: repo });
     return { success: true, repo };
   } catch (err) {
@@ -69,7 +67,7 @@ export const pollRepoStatus = (repoId) => async (dispatch) => {
     dispatch({ type: FETCH_REPOS_SUCCESS, payload: data.repos });
 
     const repo = data.repos.find((r) => r._id === repoId);
-    if (repo && (repo.status === "pending" || repo.status === "cloning")) {
+    if (repo && ["pending", "cloning", "indexing"].includes(repo.status)) {
       setTimeout(poll, 3000);
     }
   };

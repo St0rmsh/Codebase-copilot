@@ -1,4 +1,5 @@
 import Team from "../models/team.model.js";
+import mongoose from "mongoose";
 import crypto from "crypto";
 
 export const createTeam = async (name, ownerId) => {
@@ -39,6 +40,28 @@ export const isTeamMember = async (teamId, userId) => {
 export const isTeamOwner = async (teamId, userId) => {
   const team = await Team.findOne({ _id: teamId, owner: userId });
   return !!team;
+};
+
+export const transferTeamOwner = async (teamId, currentOwnerId, nextOwnerId) => {
+  const nextOwnerObjectId = new mongoose.Types.ObjectId(nextOwnerId);
+  const currentOwnerObjectId = new mongoose.Types.ObjectId(currentOwnerId);
+  return await Team.findOneAndUpdate(
+    { _id: teamId, owner: currentOwnerObjectId, "members.user": nextOwnerObjectId },
+    {
+      $set: {
+        owner: nextOwnerObjectId,
+        "members.$[newOwner].role": "owner",
+        "members.$[previousOwner].role": "member",
+      },
+    },
+    {
+      arrayFilters: [
+        { "newOwner.user": nextOwnerObjectId },
+        { "previousOwner.user": currentOwnerObjectId },
+      ],
+      returnDocument: "after",
+    }
+  );
 };
 
 
